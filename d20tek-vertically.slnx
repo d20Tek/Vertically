@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/.items/">
+    <File Path=".github/workflows/ci-build.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="D20Tek.Vertically/D20Tek.Vertically.csproj" Id="0e541134-1dc7-4085-bc2a-3ce91b77a75d" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>

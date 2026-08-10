@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="bunit" Version="2.8.6" />
+    <PackageVersion Include="D20Tek.Functional" Version="1.1.5" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
+    <PackageVersion Include="MSTest" Version="4.3.3" />
+  </ItemGroup>
+</Project>
