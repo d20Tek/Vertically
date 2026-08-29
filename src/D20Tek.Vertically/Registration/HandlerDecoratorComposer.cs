@@ -42,7 +42,13 @@ internal static class HandlerDecoratorComposer
             var closed = behaviorDefinitions[i]
                 .MakeGenericType(registration.RequestType, registration.ResultType);
             closedBehaviorTypes[i] = closed;
-            services.TryAddSingleton(closed);
+
+            // Behaviors are singletons by default; those needing scoped services opt in via
+            // IScopedBehavior and are registered scoped to avoid captive dependencies.
+            var lifetime = typeof(IScopedBehavior).IsAssignableFrom(closed)
+                ? ServiceLifetime.Scoped
+                : ServiceLifetime.Singleton;
+            services.TryAdd(new ServiceDescriptor(closed, closed, lifetime));
         }
 
         var decoratorType = (registration.IsCommand

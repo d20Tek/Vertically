@@ -320,30 +320,43 @@ samples/
 
 ## 5. Implementation Plan (Steps)
 
-0. [done] **Prerequisite (external):** add a `Unit` type to `D20Tek.Functional` and publish, so
+0. [x] **Prerequisite (external):** add a `Unit` type to `D20Tek.Functional` and publish, so
    void commands can standardize on `Result<Unit>`. (Tracked separately in that repo.)
-1. [done] Move the library project under `src/` and update the `.slnx`; multi-target `net9.0;net10.0`.
-2. [done] Fix `IQuery` to an interface and add result-typed `ICommand<TResult>` / `IQuery<TResult>`
+1. [x] Move the library project under `src/` and update the `.slnx`; multi-target `net9.0;net10.0`.
+2. [x] Fix `IQuery` to an interface and add result-typed `ICommand<TResult>` / `IQuery<TResult>`
    markers.
-3. [done] Tighten `ICommandHandler` / `IQueryHandler` constraints to the result-typed request markers.
-4. [done] Define `IPipelineBehavior<TRequest,TResult>` and `RequestHandlerDelegate<TResult>`.
-5. [done] Add the `Microsoft.Extensions.DependencyInjection.Abstractions` and
+3. [x] Tighten `ICommandHandler` / `IQueryHandler` constraints to the result-typed request markers.
+4. [x] Define `IPipelineBehavior<TRequest,TResult>` and `RequestHandlerDelegate<TResult>`.
+5. [x] Add the `Microsoft.Extensions.DependencyInjection.Abstractions` and
    `Microsoft.Extensions.Logging.Abstractions` references and package plumbing.
-6. Implement the fluent builder: `VerticallyBuilder` with `Handlers` (explicit + scanning,
+6. [x] Implement the fluent builder: `VerticallyBuilder` with `Handlers` (explicit + scanning,
    Scoped handlers & validators) and `Behaviors` (Singleton) groups. And define IFeature interface.
-7. Implement the open-generic handler decorator composer (per closed handler type, ordered
+7. [x] Implement the open-generic handler decorator composer (per closed handler type, ordered
    chain; duplicate-handler registration throws).
-8. Add global + custom behavior registration and per-handler `ForCommand`/`ForQuery` (option B)
+8. [x] Add global + custom behavior registration and per-handler `ForCommand`/`ForQuery` (option B)
    with `InsertBefore<T>()` / `Placement` overrides.
-9. Implement built-in behaviors: Logging, Timing, ExceptionToResult (`Error.Unexpected`),
+9. [x] Implement built-in behaviors: Logging, Timing, ExceptionToResult (`Error.Unexpected`),
    Validation (`Error.Code = Validation`).
-10. Add the `AddVertically` `IServiceCollection` extension tying the builder together.
-11. Create MSTest project and cover contracts, registration, decorator ordering, and each
+   - Validation behavior must resolve `IValidator<TRequest>` **lazily per-call** (it is Scoped
+     while behaviors are Singletons) — inject the scoped `IServiceProvider` and resolve inside
+     `HandleAsync`, never in the constructor, to avoid a captive-dependency bug.
+   - Built-ins are registered via `TryAddSingleton`, so they are replaceable only when a
+     consumer registers their own closed behavior instance **before** `Build()` runs — document
+     this ordering requirement (and add a convenience `AddLogging()`/`AddTiming()`/etc. surface
+     so built-ins flow through the same `GetBehaviorDefinitionsFor` path as custom behaviors).
+10. [ ] Add the `AddVertically` `IServiceCollection` extension tying the builder together.
+11. [ ] Create MSTest project and cover contracts, registration, decorator ordering, and each
 	behavior.
-12. Create the WebApi (Minimal API) sample with hand-written `Result<T>` -> `IResult` mapping.
-13. Create the Blazor sample binding `Result<T>` to UI state.
-14. Create the CLI sample mapping `Result<T>` to console output / exit codes.
-15. Build the solution and run tests to validate.
+12. [ ] Create the WebApi (Minimal API) sample with hand-written `Result<T>` -> `IResult` mapping.
+13. [ ] Create the Blazor sample binding `Result<T>` to UI state.
+14. [ ] Create the CLI sample mapping `Result<T>` to console output / exit codes.
+    - **Scope requirement:** the CLI must resolve handlers inside a
+      `using var scope = provider.CreateScope();` block and resolve from `scope.ServiceProvider`
+      (not the root provider). Handlers/validators are Scoped, and `ValidationBehavior` resolves
+      `IValidator<TRequest>` from the ambient scoped provider that constructs it — resolving off
+      the root provider has no active scope and trips scope validation. Web/Blazor get a
+      per-request scope for free; the CLI must open one explicitly.
+15. [ ] Build the solution and run tests to validate.
 
 ---
 

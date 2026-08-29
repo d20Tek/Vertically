@@ -1,34 +1,24 @@
 namespace D20Tek.Vertically.Registration;
 
+using D20Tek.Vertically.Behaviors;
+
 internal sealed class BehaviorRegistrationBuilder(VerticallyBuilder builder) : IBehaviorRegistrationBuilder
 {
     private readonly VerticallyBuilder _builder = builder;
 
     public IBehaviorRegistrationBuilder Add(Type openGenericBehaviorType)
     {
-        ArgumentNullException.ThrowIfNull(openGenericBehaviorType);
-
-        if (!openGenericBehaviorType.IsGenericTypeDefinition)
-        {
-            throw new ArgumentException(
-                $"Behavior type '{openGenericBehaviorType}' must be an open generic type " +
-                "definition, e.g. typeof(MyBehavior<,>).",
-                nameof(openGenericBehaviorType));
-        }
-
-        if (!ImplementsPipelineBehavior(openGenericBehaviorType))
-        {
-            throw new ArgumentException(
-                $"Behavior type '{openGenericBehaviorType}' must implement " +
-                "IPipelineBehavior<TRequest, TResult>.",
-                nameof(openGenericBehaviorType));
-        }
+        BehaviorTypeValidator.EnsureOpenGenericPipelineBehavior(openGenericBehaviorType, nameof(openGenericBehaviorType));
 
         _builder.AddGlobalBehavior(openGenericBehaviorType);
         return this;
     }
 
-    private static bool ImplementsPipelineBehavior(Type type) =>
-        type.GetInterfaces().Any(i =>
-            i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>));
+    public IBehaviorRegistrationBuilder AddLogging() => Add(typeof(LoggingBehavior<,>));
+
+    public IBehaviorRegistrationBuilder AddTiming() => Add(typeof(TimingBehavior<,>));
+
+    public IBehaviorRegistrationBuilder AddExceptionToResult() => Add(typeof(ExceptionToResultBehavior<,>));
+
+    public IBehaviorRegistrationBuilder AddValidation() => Add(typeof(ValidationBehavior<,>));
 }

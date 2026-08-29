@@ -16,4 +16,18 @@ public interface IVerticallyBuilder
 
     /// <summary>Global (all-handler) behavior configuration, applied in registration order.</summary>
     IBehaviorRegistrationBuilder Behaviors { get; }
+
+    /// <summary>
+    /// Opens a per-handler behavior scope for the given command request type (option B).
+    /// Behaviors added here sit closest to the handler (innermost) by default.
+    /// </summary>
+    /// <typeparam name="TCommand">The command request type.</typeparam>
+    IHandlerBehaviorScope ForCommand<TCommand>();
+
+    /// <summary>
+    /// Opens a per-handler behavior scope for the given query request type (option B).
+    /// Behaviors added here sit closest to the handler (innermost) by default.
+    /// </summary>
+    /// <typeparam name="TQuery">The query request type.</typeparam>
+    IHandlerBehaviorScope ForQuery<TQuery>();
 }
