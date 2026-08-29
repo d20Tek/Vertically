@@ -51,14 +51,24 @@ This library provides the slice contracts + a clean registration story, not a me
   the indirection. Consistent with "direct is blessed, magic is optional."
 
 ### 2.3 Requests carry their result type
-- **Decision:** `ICommand<TResult>` and `IQuery<TResult>`, with bare `ICommand`/`IQuery`
-  kept as non-generic base markers. Handlers constrained:
+- **Decision:** `ICommand<TResult>` and `IQuery<TResult>` **only** — no non-generic base
+  markers. Handlers constrained:
   `ICommandHandler<TCommand,TResult> where TCommand : ICommand<TResult>`.
 - **Why:** Self-describing requests make scanning, decorator composition, and (especially)
   the wave-2 source generator dramatically simpler and safer. Cost to the user is just
   `: ICommand<OrderId>` on the declaration.
-- **Bug fix included:** `IQuery` is currently declared `public class IQuery` — it must
-  become an `interface`.
+- **No non-generic `ICommand`/`IQuery` base markers (option 2).** Rationale:
+  - C# forbids a public interface inheriting an internal one, so an "internal base carried
+    publicly" is impossible — the choice is binary: public base marker, or no base marker.
+  - A base marker only bought a cheap runtime-scan pre-filter
+    (`IsAssignableFrom(typeof(ICommand))`); scanning instead matches on the open generic
+    `ICommand<>` / `IQuery<>`, which is trivial and done once at startup.
+  - The source generator keys off the **generic type arguments** of handler interfaces via
+    the semantic model, so a base marker gives it no benefit either.
+  - Net: removing the base markers yields the smallest, most intentional public surface with
+    no meaningful complexity cost to either the scanner or the generator.
+- **Bug fix included:** `IQuery` was previously declared `public class IQuery` — now an
+  `interface` (already corrected in the codebase).
 
 ### 2.4 Single behavior contract for built-ins AND custom behaviors
 - **Decision:** One `IPipelineBehavior<TRequest,TResult>` with a `next`-delegate:
@@ -261,12 +271,12 @@ samples/
 
 ## 5. Implementation Plan (Steps)
 
-0. **Prerequisite (external):** add a `Unit` type to `D20Tek.Functional` and publish, so
+0. [done] **Prerequisite (external):** add a `Unit` type to `D20Tek.Functional` and publish, so
    void commands can standardize on `Result<Unit>`. (Tracked separately in that repo.)
-1. Move the library project under `src/` and update the `.slnx`; multi-target `net9.0;net10.0`.
-2. Fix `IQuery` to an interface and add result-typed `ICommand<TResult>` / `IQuery<TResult>`
+1. [done] Move the library project under `src/` and update the `.slnx`; multi-target `net9.0;net10.0`.
+2. [done] Fix `IQuery` to an interface and add result-typed `ICommand<TResult>` / `IQuery<TResult>`
    markers.
-3. Tighten `ICommandHandler` / `IQueryHandler` constraints to the result-typed request markers.
+3. [done] Tighten `ICommandHandler` / `IQueryHandler` constraints to the result-typed request markers.
 4. Define `IPipelineBehavior<TRequest,TResult>` and `RequestHandlerDelegate<TResult>`.
 5. Add the `Microsoft.Extensions.DependencyInjection.Abstractions` and
    `Microsoft.Extensions.Logging.Abstractions` references and package plumbing.
@@ -308,7 +318,7 @@ samples/
 |-------|----------|
 | Dispatcher/sender | **None** in release 1; direct handler injection blessed path |
 | Behaviors | **Decorator-based**, opt-in |
-| Result type on request | **Yes** — `ICommand<TResult>` / `IQuery<TResult>` |
+| Result type on request | **Yes** — `ICommand<TResult>` / `IQuery<TResult>` only (no non-generic base markers, option 2) |
 | Behavior contract | Single `IPipelineBehavior<TRequest,TResult>` with `next` delegate |
 | Behavior lifetime | **Singletons** (stateless) |
 | Built-in behaviors | Logging, Timing, ExceptionToResult, Validation (all replaceable) |

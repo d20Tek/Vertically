@@ -8,7 +8,7 @@ namespace D20Tek.Vertically;
 /// <typeparam name="TQuery">The query type that will be handled by this handler.</typeparam>
 /// <typeparam name="TResult">The type of the result returned by the handler.</typeparam>
 public interface IQueryHandler<in TQuery, TResult>
-    where TQuery : IQuery
+    where TQuery : IQuery<TResult>
     where TResult : notnull
 {
     /// <summary>

@@ -8,7 +8,7 @@ namespace D20Tek.Vertically;
 /// <typeparam name="TCommand">The command type that will be handled by this handler.</typeparam>
 /// <typeparam name="TResult">The type of the result returned by the handler.</typeparam>
 public interface ICommandHandler<in TCommand, TResult>
-    where TCommand : ICommand
+    where TCommand : ICommand<TResult>
     where TResult : notnull
 {
     /// <summary>
