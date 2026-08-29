@@ -3,9 +3,11 @@ namespace D20Tek.Vertically.Registration;
 /// <summary>
 /// Default <see cref="IVerticallyBuilder"/> implementation. Collects handler, validator, and
 /// behavior registration intent, then materializes it into the <see cref="IServiceCollection"/>
-/// when <see cref="Build"/> is called.
+/// when <see cref="Build"/> is called. Consumers interact only through
+/// <see cref="IVerticallyBuilder"/>; instances are created by
+/// <see cref="ServiceCollectionExtensions.AddVertically"/>.
 /// </summary>
-public sealed class VerticallyBuilder : IVerticallyBuilder
+internal sealed class VerticallyBuilder : IVerticallyBuilder
 {
     private readonly List<HandlerRegistration> _handlers = [];
     private readonly Dictionary<Type, Type> _handlerServiceToImpl = [];
@@ -15,7 +17,7 @@ public sealed class VerticallyBuilder : IVerticallyBuilder
 
     /// <summary>Initializes a new builder over the given service collection.</summary>
     /// <param name="services">The service collection to register into.</param>
-    public VerticallyBuilder(IServiceCollection services)
+    internal VerticallyBuilder(IServiceCollection services)
     {
         Services = services;
         Handlers = new HandlerRegistrationBuilder(this);
@@ -130,9 +132,10 @@ public sealed class VerticallyBuilder : IVerticallyBuilder
     /// <summary>
     /// Materializes the collected registrations into the service collection. Handlers and
     /// validators are registered as Scoped; behaviors are composed around handlers as Scoped
-    /// factories with Singleton behavior instances.
+    /// factories with Singleton behavior instances. Invoked once by
+    /// <see cref="ServiceCollectionExtensions.AddVertically"/>.
     /// </summary>
-    public void Build()
+    internal void Build()
     {
         foreach (var (serviceType, implementationType) in _validators)
         {
