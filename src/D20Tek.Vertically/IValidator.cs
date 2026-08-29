@@ -1,5 +1,3 @@
-using D20Tek.Functional;
-
 namespace D20Tek.Vertically;
 
 /// <summary>

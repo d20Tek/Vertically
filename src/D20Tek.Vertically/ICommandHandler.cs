@@ -1,5 +1,3 @@
-using D20Tek.Functional;
-
 namespace D20Tek.Vertically;
 
 /// <summary>
@@ -15,7 +13,7 @@ public interface ICommandHandler<in TCommand, TResult>
     /// Handles the specified command asynchronously.
     /// </summary>
     /// <param name="command">The command to handle.</param>
-    /// <param name="ct">A cancellation token.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a Result wrapping the command result.</returns>
-    Task<Result<TResult>> HandleAsync(TCommand command, CancellationToken ct = default);
+    Task<Result<TResult>> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
 }

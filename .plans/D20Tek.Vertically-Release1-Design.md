@@ -175,7 +175,49 @@ This library provides the slice contracts + a clean registration story, not a me
 4. **Validation** — runs `IValidator<TRequest>` when registered; short-circuits to a failure
    `Result` on validation errors.
 
-### 2.10 Samples — UI-agnostic
+### 2.10 Optional `IFeature` — self-registering slice unit
+
+- **Decision:** Add an **optional** `IFeature` (shape A, instance-based) to core so a slice can
+  bundle its command/query, handler, validator, and any slice-specific DI into one
+  self-registering unit. Purely additive — developers who prefer the static nested-class
+  convention or plain explicit/scanned registration are unaffected.
+  ```csharp
+  public interface IFeature
+  {
+      void Register(IVerticallyBuilder builder);
+  }
+
+  public sealed class CreateOrder : IFeature
+  {
+      public void Register(IVerticallyBuilder builder)
+      {
+          builder.Handlers.AddCommandHandler<Handler>();
+          builder.ForCommand<Command>().AddTiming();
+      }
+
+      public sealed record Command(/* ... */) : ICommand<OrderId>;
+      public sealed class Validator : IValidator<Command> { /* ... */ }
+      public sealed class Handler : ICommandHandler<Command, OrderId> { /* ... */ }
+  }
+  ```
+- **Static-class caveat:** static classes can't implement interfaces, so a feature that
+  implements `IFeature` is a **non-static** class (nested `Command`/`Handler`/`Validator`
+  still allowed). The conventional static nested-class remains available for those who don't
+  want `IFeature`.
+- **Discovery is part of the same scan** (two-phase, deterministic order):
+  1. **Features first** — discover `IFeature` implementers, instantiate (parameterless ctor),
+     run each `Register`.
+  2. **Loose scan second** — discover `ICommandHandler`/`IQueryHandler`/`IValidator` types and
+     register only those **not already registered**, and **skip types nested inside an
+     `IFeature`** (feature-owned).
+- **Source-generator compatibility:** the `Register` body is ordinary reflection-free C#
+  (explicit generic registrations), so it is AOT/trim-safe as-is. The wave-2 generator only
+  replaces the **reflection discovery** of `IFeature` types with emitted
+  `new TFeature().Register(builder)` calls. **Guidance:** features must use explicit generic
+  registration inside `Register` (never a nested `RegisterHandlersFromAssembly`, which would
+  reintroduce reflection and break AOT).
+
+### 2.11 Samples — UI-agnostic
 - **Decision:** Three samples (WebApi Minimal API, Blazor, CLI), each invoking the **same**
   handlers but mapping `Result<T>` differently, with the mapping written **by hand** in the
   sample:
@@ -187,7 +229,7 @@ This library provides the slice contracts + a clean registration story, not a me
 - **No platform integration packages yet** (`D20Tek.Vertically.AspNetCore`, `.Cli`, etc.).
   Revisit once patterns are proven, keeping the core UI-agnostic.
 
-### 2.11 Operational conventions (lifetimes, void, errors, targeting)
+### 2.12 Operational conventions (lifetimes, void, errors, targeting)
 
 - **DI lifetimes:** handlers **and** validators (`IValidator<T>`) are registered **Scoped**
   by default (matches ASP.NET request scope / EF `DbContext`; CLI & Blazor create a scope per
@@ -197,8 +239,15 @@ This library provides the slice contracts + a clean registration story, not a me
   second non-generic surface). `D20Tek.Functional` does not yet expose a `Unit` type — it
   will be **added to `D20Tek.Functional`** to support this API cleanly. `Unit` is a
   prerequisite dependency for the void-command ergonomics.
-- **Duplicate handlers:** registering two handlers for the same `ICommand<TResult>` /
-  `IQuery<TResult>` **throws a clear exception at registration** (fail fast). No last-wins.
+- **Duplicate / double-discovery policy:** registration tracks a
+  `HashSet<(Type serviceType, Type implementationType)>`.
+  - Re-registering the **same** (service, implementation) pair is a **no-op** (dedupe). This
+    is what makes feature registration + loose scan safe together.
+  - Registering a **different** implementation for an already-registered handler service
+    (two handlers competing for the same `ICommand<TResult>` / `IQuery<TResult>`) **throws**
+    a clear exception at registration (fail fast). No last-wins.
+  - Discovery order: **features first, loose scan second**; the scan skips already-registered
+    pairs and types nested inside `IFeature` implementers.
 - **Missing handlers:** no eager validation pass in release 1. A missing handler simply fails
   DI resolution at the call site (acceptable given there is no sender). May add an optional
   eager check / analyzer later.
@@ -277,11 +326,11 @@ samples/
 2. [done] Fix `IQuery` to an interface and add result-typed `ICommand<TResult>` / `IQuery<TResult>`
    markers.
 3. [done] Tighten `ICommandHandler` / `IQueryHandler` constraints to the result-typed request markers.
-4. Define `IPipelineBehavior<TRequest,TResult>` and `RequestHandlerDelegate<TResult>`.
-5. Add the `Microsoft.Extensions.DependencyInjection.Abstractions` and
+4. [done] Define `IPipelineBehavior<TRequest,TResult>` and `RequestHandlerDelegate<TResult>`.
+5. [done] Add the `Microsoft.Extensions.DependencyInjection.Abstractions` and
    `Microsoft.Extensions.Logging.Abstractions` references and package plumbing.
 6. Implement the fluent builder: `VerticallyBuilder` with `Handlers` (explicit + scanning,
-   Scoped handlers & validators) and `Behaviors` (Singleton) groups.
+   Scoped handlers & validators) and `Behaviors` (Singleton) groups. And define IFeature interface.
 7. Implement the open-generic handler decorator composer (per closed handler type, ordered
    chain; duplicate-handler registration throws).
 8. Add global + custom behavior registration and per-handler `ForCommand`/`ForQuery` (option B)
@@ -334,7 +383,8 @@ samples/
 | Decorator registration | Hand-coded open-generic (no Scrutor) |
 | Handler/validator lifetime | **Scoped** (behaviors stay Singleton) |
 | Void commands | **`Result<Unit>`**; `Unit` to be added to `D20Tek.Functional` |
-| Duplicate handlers | **Throw** at registration (fail fast); no last-wins |
+| Duplicate handlers | Same (service, impl) pair = no-op dedupe; **different** impl for same request = throw |
+| IFeature | **Optional** `IFeature.Register(IVerticallyBuilder)` (shape A, instance); discovered in same scan (features first, then loose scan skipping owned/duplicate types) |
 | Missing handlers | No eager validation in release 1; fails at DI resolution |
 | ExceptionToResult mapping | **`Error.Unexpected(exception)`** |
 | Validation mapping | `Result` failure with `Error.Code = Validation` |
