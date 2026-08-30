@@ -77,3 +77,43 @@ public sealed class ShortCircuitBehavior<TRequest, TResult> : IPipelineBehavior<
     }
 }
 
+/// <summary>
+/// Open generic type that does NOT implement <see cref="IPipelineBehavior{TRequest, TResult}"/>,
+/// used to exercise the behavior-type validation guard.
+/// </summary>
+public sealed class NotABehavior<TRequest, TResult>
+    where TRequest : notnull
+    where TResult : notnull
+{
+}
+
+/// <summary>
+/// Open generic type that implements a generic interface other than
+/// <see cref="IPipelineBehavior{TRequest, TResult}"/>, used to exercise the
+/// <c>i.GetGenericTypeDefinition() == typeof(IPipelineBehavior&lt;,&gt;)</c> branch of the
+/// behavior-type validation predicate (an interface is present, so the lambda runs, but it
+/// is the wrong generic definition).
+/// </summary>
+[ExcludeFromCodeCoverage]
+public sealed class WrongInterfaceBehavior<TRequest, TResult> : IComparable<TRequest>
+    where TRequest : notnull
+    where TResult : notnull
+{
+    public int CompareTo(TRequest? other) => 0;
+}
+
+/// <summary>
+/// Open generic type that implements only a NON-generic interface, used to exercise the
+/// <c>i.IsGenericType</c> (false) short-circuit of the behavior-type validation predicate:
+/// the lambda runs for a present interface, but <see cref="IDisposable"/> is not generic.
+/// </summary>
+[ExcludeFromCodeCoverage]
+public sealed class NonGenericInterfaceBehavior<TRequest, TResult> : IDisposable
+    where TRequest : notnull
+    where TResult : notnull
+{
+    public void Dispose()
+    {
+    }
+}
+

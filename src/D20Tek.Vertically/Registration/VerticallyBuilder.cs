@@ -41,8 +41,6 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
 
     internal IReadOnlyList<HandlerRegistration> HandlerRegistrations => _handlers;
 
-    internal IReadOnlyList<Type> GlobalBehaviors => _globalBehaviors;
-
     internal void AddHandlerRegistration(HandlerRegistration registration)
     {
         if (_handlerServiceToImpl.TryGetValue(registration.ServiceType, out var existing))
