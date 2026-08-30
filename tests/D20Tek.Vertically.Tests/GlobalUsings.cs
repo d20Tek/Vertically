@@ -1,6 +1,7 @@
 global using D20Tek.Functional;
 global using D20Tek.Vertically.Behaviors;
 global using D20Tek.Vertically.Pipeline;
+global using D20Tek.Vertically.Queries;
 global using D20Tek.Vertically.Registration;
 global using D20Tek.Vertically.Tests.Fakes;
 global using Microsoft.Extensions.DependencyInjection;
