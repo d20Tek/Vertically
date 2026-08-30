@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// Represents a single page of items along with the metadata needed to navigate a paged data set.

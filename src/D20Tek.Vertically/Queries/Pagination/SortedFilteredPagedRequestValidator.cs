@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// Validates a <see cref="SortedFilteredPagedRequest"/>. Reuses the base paging bound checks and
@@ -19,19 +19,10 @@ public sealed class SortedFilteredPagedRequestValidator : IValidator<SortedFilte
             "Sorts",
             "Sort expressions must specify a non-empty Field.");
         errors.AddIfError(
-            () => input.Filter is not null && HasEmptyField(input.Filter),
+            () => input.Filter is not null && FilterNodeValidation.HasEmptyField(input.Filter),
             "Filter",
             "Filter expressions must specify a non-empty Field.");
 
         return errors;
     }
-
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static bool HasEmptyField(FilterNode node) =>
-        node switch
-        {
-            FilterExpression expression => string.IsNullOrWhiteSpace(expression.Field),
-            FilterGroup group => group.Nodes.Any(HasEmptyField),
-            _ => throw new UnreachableException($"Unhandled filter node type: {node.GetType().Name}."),
-        };
 }

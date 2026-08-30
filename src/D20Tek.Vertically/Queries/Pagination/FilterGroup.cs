@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// A composite filter node that combines its <see cref="Nodes"/> with a boolean

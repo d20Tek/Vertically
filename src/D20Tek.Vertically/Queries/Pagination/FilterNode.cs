@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// Base type for a node in a provider-agnostic filter tree. A node is either a single

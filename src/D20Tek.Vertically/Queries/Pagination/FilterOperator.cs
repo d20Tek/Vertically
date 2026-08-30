@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// The comparison a <see cref="FilterExpression"/> applies to a field.

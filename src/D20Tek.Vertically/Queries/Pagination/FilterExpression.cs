@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// A provider-agnostic filter instruction and the leaf node of a filter tree. Adapters resolve

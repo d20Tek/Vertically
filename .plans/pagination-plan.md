@@ -233,4 +233,5 @@ tests/
 9. [x] Build + run tests to validate.
 10. (Future) Spin up `D20Tek.Vertically.EntityFrameworkCore` with `ToPageOfAsync` execution
 	helpers.
-11. (Future) Add `CursorPagedRequest` implementing `IPagedRequest`.
+11. [x] Add `CursorPagedRequest` implementing `IPagedRequest`.
+12. [x] Add FilterGroup to support AND/OR grouping of filter expressions. This will allow for more complex filtering scenarios.

@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// Offset-based paging request. Callers specify a one-based <see cref="PageNumber"/> and a

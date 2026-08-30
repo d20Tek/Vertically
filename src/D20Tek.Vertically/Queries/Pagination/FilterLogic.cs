@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// The boolean operator used by a <see cref="FilterGroup"/> to combine its child nodes.

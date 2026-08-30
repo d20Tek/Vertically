@@ -1,10 +1,12 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
-/// An offset paging request that additionally carries provider-agnostic sort and filter
-/// instructions. Callers who only need paging can use <see cref="PagedRequest"/> directly.
+/// A cursor paging request that additionally carries provider-agnostic sort and filter
+/// instructions. Cursor paging relies on a stable ordering, so callers should supply
+/// <see cref="Sorts"/> that produce a deterministic keyset. Callers who only need cursor paging can
+/// use <see cref="CursorPagedRequest"/> directly.
 /// </summary>
-public record SortedFilteredPagedRequest : PagedRequest
+public record SortedFilteredCursorPagedRequest : CursorPagedRequest
 {
     /// <summary>The ordered set of sort instructions to apply.</summary>
     public IReadOnlyList<SortExpression> Sorts { get; init; } = [];

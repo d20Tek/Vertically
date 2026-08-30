@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Tests.Queries;
+namespace D20Tek.Vertically.Tests.Queries.Pagination;
 
 [TestClass]
 public sealed class PagedRequestValidatorTests

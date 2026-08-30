@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Queries;
+namespace D20Tek.Vertically.Queries.Pagination;
 
 /// <summary>
 /// Validates a <see cref="PagedRequest"/> against paging guardrails: page number lower bound and
