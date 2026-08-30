@@ -86,4 +86,49 @@ public sealed class PageOfTests
         Assert.IsTrue(page.HasPrevious);
         Assert.IsTrue(page.HasNext);
     }
+
+    [TestMethod]
+    public void Empty_PreservesRequestMetadataWithNoItems()
+    {
+        // Arrange
+        var request = new PagedRequest { PageNumber = 3, PageSize = 25 };
+
+        // Act
+        var page = PageOf<string>.Empty(request);
+
+        // Assert
+        Assert.AreEqual(0, page.Items.Count);
+        Assert.AreEqual(3, page.PageNumber);
+        Assert.AreEqual(25, page.PageSize);
+        Assert.AreEqual(0L, page.TotalCount);
+        Assert.AreEqual(0, page.TotalPages);
+    }
+
+    [TestMethod]
+    public void Map_ProjectsItemsAndPreservesMetadata()
+    {
+        // Arrange
+        var request = new PagedRequest { PageNumber = 2, PageSize = 25 };
+        var page = PageOf<int>.Create([1, 2, 3], request, totalCount: 123);
+
+        // Act
+        var mapped = page.Map(i => i.ToString());
+
+        // Assert
+        CollectionAssert.AreEqual(new[] { "1", "2", "3" }, mapped.Items.ToArray());
+        Assert.AreEqual(2, mapped.PageNumber);
+        Assert.AreEqual(25, mapped.PageSize);
+        Assert.AreEqual(123L, mapped.TotalCount);
+        Assert.AreEqual(5, mapped.TotalPages);
+    }
+
+    [TestMethod]
+    public void Map_NullSelector_Throws()
+    {
+        // Arrange
+        var page = PageOf<int>.Create([1], new PagedRequest(), totalCount: 1);
+
+        // Act & Assert
+        Assert.ThrowsExactly<ArgumentNullException>([ExcludeFromCodeCoverage]() => page.Map<string>(null!));
+    }
 }

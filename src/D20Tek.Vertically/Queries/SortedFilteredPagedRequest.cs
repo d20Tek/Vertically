@@ -9,6 +9,9 @@ public record SortedFilteredPagedRequest : PagedRequest
     /// <summary>The ordered set of sort instructions to apply.</summary>
     public IReadOnlyList<SortExpression> Sorts { get; init; } = [];
 
-    /// <summary>The set of filter instructions to apply.</summary>
-    public IReadOnlyList<FilterExpression> Filters { get; init; } = [];
+    /// <summary>
+    /// The root of the filter tree to apply, or <c>null</c> when no filtering is requested.
+    /// Use <see cref="FilterGroup"/> to combine expressions with AND/OR and arbitrary nesting.
+    /// </summary>
+    public FilterGroup? Filter { get; init; }
 }

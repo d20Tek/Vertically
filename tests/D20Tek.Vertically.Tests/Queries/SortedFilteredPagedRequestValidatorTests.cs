@@ -14,7 +14,7 @@ public sealed class SortedFilteredPagedRequestValidatorTests
             PageNumber = 1,
             PageSize = 20,
             Sorts = [new SortExpression("Name")],
-            Filters = [new FilterExpression("Age", FilterOperator.GreaterThan, 21)],
+            Filter = FilterGroup.All(new FilterExpression("Age", FilterOperator.GreaterThan, 21)),
         };
 
         // Act
@@ -59,7 +59,7 @@ public sealed class SortedFilteredPagedRequestValidatorTests
         // Arrange
         var request = new SortedFilteredPagedRequest
         {
-            Filters = [new FilterExpression("", FilterOperator.Equals, "x")],
+            Filter = FilterGroup.All(new FilterExpression("", FilterOperator.Equals, "x")),
         };
 
         // Act
@@ -70,7 +70,25 @@ public sealed class SortedFilteredPagedRequestValidatorTests
     }
 
     [TestMethod]
-    public void Validate_EmptySortsAndFilters_HasNoErrors()
+    public void Validate_NestedFilterWithEmptyField_HasError()
+    {
+        // Arrange
+        var request = new SortedFilteredPagedRequest
+        {
+            Filter = FilterGroup.Any(
+                new FilterExpression("Status", FilterOperator.Equals, "Active"),
+                FilterGroup.All(new FilterExpression("  ", FilterOperator.Equals, "x"))),
+        };
+
+        // Act
+        var errors = _validator.Validate(request);
+
+        // Assert
+        Assert.IsTrue(errors.HasErrors);
+    }
+
+    [TestMethod]
+    public void Validate_EmptySortsAndNullFilter_HasNoErrors()
     {
         // Arrange
         var request = new SortedFilteredPagedRequest { PageNumber = 1, PageSize = 20 };

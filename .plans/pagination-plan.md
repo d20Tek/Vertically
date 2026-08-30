@@ -219,18 +219,18 @@ tests/
 
 ## 6. Implementation Plan (Steps)
 
-1. Create the `Querying/` folder in `src/D20Tek.Vertically`.
-2. Add `IPagedRequest` marker interface.
-3. Add `PagedRequest` (offset paging with `Skip`/`Take` and page-size constants).
-4. Add sort/filter value types: `SortDirection`, `SortExpression`, `FilterOperator`,
+1. [x] Create the `Querying/` folder in `src/D20Tek.Vertically`.
+2. [x] Add `IPagedRequest` marker interface.
+3. [x] Add `PagedRequest` (offset paging with `Skip`/`Take` and page-size constants).
+4. [x] Add sort/filter value types: `SortDirection`, `SortExpression`, `FilterOperator`,
    `FilterExpression`.
-5. Add `SortedFilteredPagedRequest` subclass.
-6. Add `PageOf<T>` result record (computed metadata + `Create` factory).
-7. Add `PagedRequestValidator` and `SortedFilteredPagedRequestValidator` (using
+5. [x] Add `SortedFilteredPagedRequest` subclass.
+6. [x] Add `PageOf<T>` result record (computed metadata + `Create` factory).
+7. [x] Add `PagedRequestValidator` and `SortedFilteredPagedRequestValidator` (using
    `Error.Validation`).
-8. Add MSTest coverage under `tests/D20Tek.Vertically.Tests/Querying/`
+8. [x] Add MSTest coverage under `tests/D20Tek.Vertically.Tests/Querying/`
    (page math, request defaults/bounds, validator behavior, factory metadata).
-9. Build + run tests to validate.
+9. [x] Build + run tests to validate.
 10. (Future) Spin up `D20Tek.Vertically.EntityFrameworkCore` with `ToPageOfAsync` execution
 	helpers.
 11. (Future) Add `CursorPagedRequest` implementing `IPagedRequest`.

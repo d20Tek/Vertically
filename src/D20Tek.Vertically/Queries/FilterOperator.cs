@@ -31,4 +31,19 @@ public enum FilterOperator
 
     /// <summary>Field ends with the value.</summary>
     EndsWith = 8,
+
+    /// <summary>Field is contained in the collection value.</summary>
+    In = 9,
+
+    /// <summary>Field is not contained in the collection value.</summary>
+    NotIn = 10,
+
+    /// <summary>Field falls within an inclusive range value (e.g. a two-element bound).</summary>
+    Between = 11,
+
+    /// <summary>Field is null. The value is ignored.</summary>
+    IsNull = 12,
+
+    /// <summary>Field is not null. The value is ignored.</summary>
+    IsNotNull = 13,
 }

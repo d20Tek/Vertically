@@ -42,4 +42,34 @@ public sealed record PageOf<T>
             PageSize = request.PageSize,
             TotalCount = totalCount,
         };
+
+    /// <summary>
+    /// Creates an empty page that preserves the paging metadata of the originating request.
+    /// </summary>
+    /// <param name="request">The request that produced this (empty) page.</param>
+    public static PageOf<T> Empty(PagedRequest request) => Create([], request, totalCount: 0);
+
+    /// <summary>
+    /// Projects each item to a new type while preserving this page's navigation metadata.
+    /// </summary>
+    /// <typeparam name="TOut">The projected item type.</typeparam>
+    /// <param name="selector">The projection applied to each item.</param>
+    public PageOf<TOut> Map<TOut>(Func<T, TOut> selector)
+    {
+        ArgumentNullException.ThrowIfNull(selector);
+
+        var mapped = new TOut[Items.Count];
+        for (var i = 0; i < Items.Count; i++)
+        {
+            mapped[i] = selector(Items[i]);
+        }
+
+        return new PageOf<TOut>
+        {
+            Items = mapped,
+            PageNumber = PageNumber,
+            PageSize = PageSize,
+            TotalCount = TotalCount,
+        };
+    }
 }
