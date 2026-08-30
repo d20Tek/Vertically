@@ -15,14 +15,14 @@ internal sealed class CommandHandlerBehaviorDecorator<TCommand, TResult>(
     private readonly IReadOnlyList<IPipelineBehavior<TCommand, TResult>> _behaviors = 
         behaviors as IReadOnlyList<IPipelineBehavior<TCommand, TResult>> ?? [.. behaviors];
 
-    public Task<Result<TResult>> HandleAsync(TCommand command, CancellationToken ct = default)
+    public Task<Result<TResult>> HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {
-        RequestHandlerDelegate<TResult> next = () => _inner.HandleAsync(command, ct);
+        RequestHandlerDelegate<TResult> next = () => _inner.HandleAsync(command, cancellationToken);
         for (var i = _behaviors.Count - 1; i >= 0; i--)
         {
             var behavior = _behaviors[i];
             var downstream = next;
-            next = () => behavior.HandleAsync(command, downstream, ct);
+            next = () => behavior.HandleAsync(command, downstream, cancellationToken);
         }
 
         return next();

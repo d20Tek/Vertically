@@ -345,7 +345,7 @@ samples/
      this ordering requirement (and add a convenience `AddLogging()`/`AddTiming()`/etc. surface
      so built-ins flow through the same `GetBehaviorDefinitionsFor` path as custom behaviors).
 10. [x] Add the `AddVertically` `IServiceCollection` extension tying the builder together.
-11. [ ] Create MSTest project and cover contracts, registration, decorator ordering, and each
+11. [x] Create MSTest project and cover contracts, registration, decorator ordering, and each
 	behavior. Broken into sub-steps below.
 
 	**Testing conventions (apply to all sub-steps):**
@@ -361,29 +361,30 @@ samples/
 	  scenario genuinely cannot be exercised through the public surface.
 	- One focused test class per unit under test; descriptive `Method_State_Expectation` names.
 
-	11-A. [ ] **Scaffold.** Create `tests/D20Tek.Vertically.Tests` (MSTest, multi-target
+	11-A. [x] **Scaffold.** Create `tests/D20Tek.Vertically.Tests` (MSTest, multi-target
 		 `net9.0;net10.0`), add it to `d20tek-vertically.slnx`, reference the library, and add
 		 shared test fakes/helpers (spy command/query handler, order-recording behavior, stub
 		 validator, in-memory/fake `ILogger`, sample commands/queries and an `IFeature`).
 		 Verify an empty test run passes.
-	11-B. [ ] **Contract + registration tests.** `AddVertically` wiring; explicit vs. assembly
+	11-B. [x] **Contract + registration tests.** `AddVertically` wiring; explicit vs. assembly
 		 scanning; feature-first discovery; dedupe (same service+impl no-op) vs. conflict
 		 (different impl throws); nested-type skip; lifetimes (handlers/validators Scoped,
 		 behaviors Singleton, `IScopedBehavior` Scoped); argument null-guards on the extension.
-	11-C. [ ] **Decorator ordering tests.** Global registration order (outermost-first);
+	11-C. [x] **Decorator ordering tests.** Global registration order (outermost-first);
 		 per-handler innermost-by-default; `AtOutermost` and `InsertBefore` placement
 		 (including the missing-anchor `InvalidOperationException`); the "no behaviors ->
 		 direct registration" path; short-circuit (a behavior returning failure without
 		 calling `next`).
-	11-D. [ ] **Built-in behavior tests.** One class per behavior: Logging (info on
+	11-D. [x] **Built-in behavior tests.** One class per behavior: Logging (info on
 		 start/success, warning + error string only when enabled, request-name output);
 		 Timing (elapsed logged in `finally` on both success and exception paths); 
 		 ExceptionToResult (maps exceptions to failure `Result`, rethrows
 		 `OperationCanceledException`); Validation (short-circuits on errors, passes through
 		 when valid or when no validators registered, lazy scoped resolution, multiple
 		 validators). Cover the `NullLogger` fallback when no logger is registered.
-	11-E. [ ] **Full run + cleanup.** Run the entire suite green across both TFMs, fill any
-		 coverage gaps, and tidy shared helpers.
+	11-E. [x] **Full run + cleanup.** Run the entire suite green on the `net10.0` test host
+		 (the library still multi-targets `net9.0;net10.0`; tests intentionally single-target
+		 `net10.0`), fill any coverage gaps, and tidy shared helpers.
 12. [ ] Create the WebApi (Minimal API) sample with hand-written `Result<T>` -> `IResult` mapping.
 13. [ ] Create the Blazor sample binding `Result<T>` to UI state.
 14. [ ] Create the CLI sample mapping `Result<T>` to console output / exit codes.

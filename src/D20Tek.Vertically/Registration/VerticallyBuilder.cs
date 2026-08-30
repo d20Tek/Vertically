@@ -139,7 +139,11 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
     {
         foreach (var (serviceType, implementationType) in _validators)
         {
-            Services.TryAddScoped(serviceType, implementationType);
+            // TryAddEnumerable keys off (service type, implementation type), so multiple
+            // distinct validators for the same request type all register and are resolved
+            // together by ValidationBehavior via GetServices, while exact duplicate
+            // (service, impl) pairs from feature + scan overlap are deduped.
+            Services.TryAddEnumerable(ServiceDescriptor.Scoped(serviceType, implementationType));
         }
 
         HandlerDecoratorComposer.Compose(this);

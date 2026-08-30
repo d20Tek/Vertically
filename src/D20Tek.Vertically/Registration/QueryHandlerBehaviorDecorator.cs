@@ -15,14 +15,14 @@ internal sealed class QueryHandlerBehaviorDecorator<TQuery, TResult>(
     private readonly IReadOnlyList<IPipelineBehavior<TQuery, TResult>> _behaviors = 
         behaviors as IReadOnlyList<IPipelineBehavior<TQuery, TResult>> ?? [.. behaviors];
 
-    public Task<Result<TResult>> HandleAsync(TQuery query, CancellationToken ct = default)
+    public Task<Result<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default)
     {
-        RequestHandlerDelegate<TResult> next = () => _inner.HandleAsync(query, ct);
+        RequestHandlerDelegate<TResult> next = () => _inner.HandleAsync(query, cancellationToken);
         for (var i = _behaviors.Count - 1; i >= 0; i--)
         {
             var behavior = _behaviors[i];
             var downstream = next;
-            next = () => behavior.HandleAsync(query, downstream, ct);
+            next = () => behavior.HandleAsync(query, downstream, cancellationToken);
         }
 
         return next();
