@@ -3,4 +3,7 @@ global using D20Tek.Vertically.Pipeline;
 global using D20Tek.Vertically.Registration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using System.Diagnostics;
 global using System.Reflection;

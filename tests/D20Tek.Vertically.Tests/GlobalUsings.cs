@@ -1,12 +1,11 @@
 global using D20Tek.Functional;
-global using D20Tek.Vertically;
 global using D20Tek.Vertically.Behaviors;
 global using D20Tek.Vertically.Pipeline;
 global using D20Tek.Vertically.Registration;
-global using Microsoft.Extensions.DependencyInjection;
-global using Microsoft.VisualStudio.TestTools.UnitTesting;
-global using Microsoft.Extensions.Logging;
-global using System.Collections.Concurrent;
 global using D20Tek.Vertically.Tests.Fakes;
-global using System.Reflection;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using System.Collections.Concurrent;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Reflection;

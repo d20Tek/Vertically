@@ -1,7 +1,3 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Diagnostics;
-
 namespace D20Tek.Vertically.Behaviors;
 
 /// <summary>

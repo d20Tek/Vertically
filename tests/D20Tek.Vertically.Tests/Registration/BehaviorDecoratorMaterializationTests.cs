@@ -34,13 +34,13 @@ public sealed class BehaviorDecoratorMaterializationTests
             new OrderingCommandHandler(), behaviors);
 
         // Act
-        var result = await decorator.HandleAsync(new OrderingCommand("x"));
+        var result = await decorator.HandleAsync(new OrderingCommand("x"), CancellationToken.None);
 
         // Assert
         Assert.IsTrue(result.IsSuccess);
-        CollectionAssert.AreEqual(
-            new[] { "First:before", "Second:before", "Handler", "Second:after", "First:after" },
-            ExecutionLog.Entries.ToArray());
+        Assert.AreSequenceEqual(
+            ["First:before", "Second:before", "Handler", "Second:after", "First:after"],
+            [.. ExecutionLog.Entries]);
     }
 
     [TestMethod]
@@ -54,12 +54,12 @@ public sealed class BehaviorDecoratorMaterializationTests
             new OrderingQueryHandler(), behaviors);
 
         // Act
-        var result = await decorator.HandleAsync(new OrderingQuery("x"));
+        var result = await decorator.HandleAsync(new OrderingQuery("x"), CancellationToken.None);
 
         // Assert
         Assert.IsTrue(result.IsSuccess);
-        CollectionAssert.AreEqual(
-            new[] { "First:before", "Second:before", "Handler", "Second:after", "First:after" },
-            ExecutionLog.Entries.ToArray());
+        Assert.AreSequenceEqual(
+            ["First:before", "Second:before", "Handler", "Second:after", "First:after"],
+            [.. ExecutionLog.Entries]);
     }
 }
