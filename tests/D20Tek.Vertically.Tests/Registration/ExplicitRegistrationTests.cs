@@ -145,6 +145,36 @@ public sealed class ExplicitRegistrationTests
     }
 
     [TestMethod]
+    public void AddValidator_AsyncValidator_RegistersAsyncValidatorService()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddVertically(b => b.Handlers.AddValidator<SampleCommandAsyncValidator>());
+        using var provider = services.BuildServiceProvider();
+
+        // Assert
+        var validator = provider.GetService<IAsyncValidator<SampleCommand>>();
+        Assert.IsNotNull(validator);
+        Assert.IsInstanceOfType<SampleCommandAsyncValidator>(validator);
+    }
+
+    [TestMethod]
+    public void AddValidator_AsyncValidatorRegisteredScoped()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddVertically(b => b.Handlers.AddValidator<SampleCommandAsyncValidator>());
+
+        // Assert
+        var descriptor = services.Single(d => d.ServiceType == typeof(IAsyncValidator<SampleCommand>));
+        Assert.AreEqual(ServiceLifetime.Scoped, descriptor.Lifetime);
+    }
+
+    [TestMethod]
     public void AddCommandHandler_SameHandlerRegisteredTwice_DedupesAndDoesNotThrow()
     {
         // Arrange

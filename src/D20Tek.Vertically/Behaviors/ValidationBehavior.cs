@@ -1,10 +1,11 @@
 namespace D20Tek.Vertically.Behaviors;
 
 /// <summary>
-/// Built-in behavior that runs registered <see cref="IValidator{T}"/> instances for the request
-/// and short-circuits to a validation failure <see cref="Result{TResult}"/> when any validator
-/// reports errors. Validation stays explicit: this behavior only runs when validators are
-/// registered, and handlers may still validate inline.
+/// Built-in behavior that runs registered <see cref="IValidator{T}"/> and
+/// <see cref="IAsyncValidator{T}"/> instances for the request and short-circuits to a validation
+/// failure <see cref="Result{TResult}"/> when any validator reports errors. Validation stays
+/// explicit: this behavior only runs when validators are registered, and handlers may still
+/// validate inline.
 /// <para>
 /// Validators are <see cref="ServiceLifetime.Scoped"/> while behaviors default to singleton, so
 /// this behavior implements <see cref="IScopedBehavior"/> and resolves validators lazily from
@@ -22,7 +23,7 @@ public sealed class ValidationBehavior<TRequest, TResult>(IServiceProvider servi
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
     /// <inheritdoc />
-    public Task<Result<TResult>> HandleAsync(
+    public async Task<Result<TResult>> HandleAsync(
         TRequest request,
         RequestHandlerDelegate<TResult> next,
         CancellationToken cancellationToken = default)
@@ -34,10 +35,21 @@ public sealed class ValidationBehavior<TRequest, TResult>(IServiceProvider servi
             var errors = validator.Validate(request);
             if (errors.HasErrors)
             {
-                return Task.FromResult(errors.ToFailure<TResult>());
+                return errors.ToFailure<TResult>();
             }
         }
 
-        return next();
+        var asyncValidators = _serviceProvider.GetServices<IAsyncValidator<TRequest>>();
+
+        foreach (var validator in asyncValidators)
+        {
+            var errors = await validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+            if (errors.HasErrors)
+            {
+                return errors.ToFailure<TResult>();
+            }
+        }
+
+        return await next().ConfigureAwait(false);
     }
 }

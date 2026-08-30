@@ -15,7 +15,7 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
         var registrations = HandlerTypeInspector.GetValidatorRegistrations(typeof(TValidator)).ToArray();
         if (registrations.Length == 0)
         {
-            throw new InvalidOperationException($"Type '{typeof(TValidator)}' does not implement IValidator<T>.");
+            throw new InvalidOperationException($"Type '{typeof(TValidator)}' does not implement IValidator<T> or IAsyncValidator<T>.");
         }
 
         foreach (var (serviceType, implementationType) in registrations)

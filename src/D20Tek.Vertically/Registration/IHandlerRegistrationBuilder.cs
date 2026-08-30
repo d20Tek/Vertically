@@ -16,7 +16,7 @@ public interface IHandlerRegistrationBuilder
     IHandlerRegistrationBuilder AddQueryHandler<THandler>() where THandler : class;
 
     /// <summary>Registers a specific validator implementation.</summary>
-    /// <typeparam name="TValidator">A type implementing <see cref="IValidator{T}"/>.</typeparam>
+    /// <typeparam name="TValidator">A type implementing <see cref="IValidator{T}"/> or <see cref="IAsyncValidator{T}"/>.</typeparam>
     IHandlerRegistrationBuilder AddValidator<TValidator>() where TValidator : class;
 
     /// <summary>

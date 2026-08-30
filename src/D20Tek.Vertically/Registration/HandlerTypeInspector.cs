@@ -30,7 +30,10 @@ internal static class HandlerTypeInspector
     {
         foreach (var iface in implementationType.GetInterfaces())
         {
-            if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(IValidator<>))
+            if (!iface.IsGenericType) continue;
+
+            var definition = iface.GetGenericTypeDefinition();
+            if (definition == typeof(IValidator<>) || definition == typeof(IAsyncValidator<>))
             {
                 yield return (iface, implementationType);
             }

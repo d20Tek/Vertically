@@ -1,4 +1,4 @@
-namespace D20Tek.Vertically.Registration;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// <see cref="IServiceCollection"/> extensions that provide the branded entry point for
