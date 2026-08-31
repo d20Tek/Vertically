@@ -5,7 +5,7 @@ namespace IssueTracker.Application.Features.Issues;
 /// <summary>
 /// Host-agnostic detail projection of an <see cref="Issue"/> returned by issue commands and queries.
 /// </summary>
-public sealed record IssueDetail(
+public sealed record IssueResponse(
     Guid Id,
     string Key,
     string Title,
@@ -13,9 +13,11 @@ public sealed record IssueDetail(
     IssueStatus Status,
     IssuePriority Priority,
     Guid? AssigneeId,
-    DateTimeOffset CreatedUtc)
+    DateTimeOffset CreatedUtc,
+    DateTimeOffset UpdatedUtc)
 {
-    public static IssueDetail FromIssue(Issue issue) => new(
+    /// <summary>Creates an <see cref="IssueResponse"/> from a domain <see cref="Issue"/>.</summary>
+    public static IssueResponse FromIssue(Issue issue) => new(
         issue.Id,
         issue.Key,
         issue.Title,
@@ -23,5 +25,6 @@ public sealed record IssueDetail(
         issue.Status,
         issue.Priority,
         issue.AssigneeId,
-        issue.CreatedUtc);
+        issue.CreatedUtc,
+        issue.UpdatedUtc);
 }

@@ -156,11 +156,11 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
   - `ChangeIssueStatus` — command; enforces legal status transitions; `Result` failure on illegal moves.
   - `AssignIssue` — command; validates the target user exists; sets `AssigneeId`; `Result` failure if
 	issue/user not found or issue already closed.
-  - `GetIssue` — query; returns a single issue detail DTO or a not-found `Result`.
-  - `GetIssuePage` — query using `SortedFilteredPagedRequest` (filter by status/priority/assignee, sort),
+  - `GetIssueById` — query; returns a single issue detail DTO or a not-found `Result`.
+  - `GetIssues` — query using `SortedFilteredPagedRequest` (filter by status/priority/assignee, sort),
 	returning `PageOf<IssueSummary>`.
-  - `GetUsers` — query; returns the list of users (`UserSummary`) for UI assignee selectors.
-- **DTOs**: `IssueDetail`, `IssueSummary`, `UserSummary` (kept host-agnostic).
+  - `GetUsers` — query; returns the list of users (`UserResponse`) for UI assignee selectors.
+- **DTOs**: `IssueResponse`, `IssueSummary`, `UserResponse` (kept host-agnostic).
 
 ## Persistence Library — Contents
 - `IssueDbContext : DbContext, IIssueDbContext` — implements the interface; `DbSet<Issue> Issues`,
@@ -188,8 +188,8 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 - Endpoints (grouped per-slice via a small `MapIssueEndpoints()` extension), each resolving the relevant
   handler and translating `Result<T>` → HTTP:
   - `POST /issues` → `CreateIssue`
-  - `GET  /issues/{id}` → `GetIssue`
-  - `GET  /issues` → `GetIssuePage` (query string → `SortedFilteredPagedRequest`)
+  - `GET  /issues/{id}` → `GetIssueById`
+  - `GET  /issues` → `GetIssues` (query string → `SortedFilteredPagedRequest`)
   - `POST /issues/{id}/assign` → `AssignIssue`
   - `POST /issues/{id}/status` → `ChangeIssueStatus`
   - `GET  /users` → `GetUsers` (assignee selector source)
@@ -202,7 +202,7 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 - **SQLite + EF Core**, `DbContext` used directly in handlers via `IIssueDbContext` (no repository).
 - **Separate `IssueTracker.Persistence`** project; interface (`IIssueDbContext`) defined in Application,
   implemented in Persistence — keeps dependency direction Application ← Persistence.
-- **Pagination** demonstrated once via `GetIssuePage` using `SortedFilteredPagedRequest` → `PageOf<T>`.
+- **Pagination** demonstrated once via `GetIssues` using `SortedFilteredPagedRequest` → `PageOf<T>`.
 - **Reference data as lookup tables** (`IssueStatuses`, `IssuePriorities`) seeded with basic values;
   code-side enums (`IssueStatus`/`IssuePriority`) mirror the lookup PKs and are stored as FK columns.
 - **Rich (encapsulated) `Issue` aggregate** with a factory + behavior methods enforcing the status
@@ -234,15 +234,15 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 3. [x] Add the `IssueStatus`/`IssuePriority` enums, the `IssueStatusRef`/`IssuePriorityRef` lookup entities, the `User` entity, and the encapsulated `Issue` aggregate (factory + behavior methods + transition rules).
 4. [x] Add the `IIssueDbContext` interface (`Issues` + `Users` + lookup `DbSet`s + `SaveChangesAsync`) in Application.
 5. [x] Implement the `CreateIssue` feature (command, validator, handler against `IIssueDbContext`, DTO; auto-generates unique `Key`). *Interim key uses a random + retry loop; replaced by the DB sequence in step 10.*
-6. Implement the `AssignIssue` (validates target `User` exists via `AssigneeId` FK) and `ChangeIssueStatus` command features with business-rule `Result` failures.
-7. Implement the `GetIssue` query feature and the `GetUsers` query feature (assignee selector source).
-8. Implement the `GetIssuePage` paged/sorted/filtered query feature using `SortedFilteredPagedRequest` and `PageOf<T>`.
-9. Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
-10. Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), the `IssueKeySequence` database sequence + `NextIssueKeyNumberAsync` (Option B key generation), and deterministic seed (lookup tables + users + issues).
-11. Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
-12. Create `Samples/IssueTracker/IssueTracker.Api` Minimal API host mapping each slice to an endpoint with `Result<T>`→HTTP translation.
-13. Register the samples projects in `d20tek-vertically.slnx` under a `/Samples/` folder.
-14. Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
+6. [x] Implement the `AssignIssue` (validates target `User` exists via `AssigneeId` FK) and `ChangeIssueStatus` command features with business-rule `Result` failures.
+7. [ ] Implement the `GetIssueById` query feature and the `GetUsers` query feature (assignee selector source).
+8. [ ] Implement the `GetIssues` paged/sorted/filtered query feature using `SortedFilteredPagedRequest` and `PageOf<T>`.
+9. [ ] Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
+10. [ ] Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), the `IssueKeySequence` database sequence + `NextIssueKeyNumberAsync` (Option B key generation), and deterministic seed (lookup tables + users + issues).
+11. [ ] Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
+12. [ ] Create `Samples/IssueTracker/IssueTracker.Api` Minimal API host mapping each slice to an endpoint with `Result<T>`→HTTP translation.
+13. [ ] Register the samples projects in `d20tek-vertically.slnx` under a `/Samples/` folder.
+14. [ ] Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
 
 ## Deferred (future plans)
 - `IssueTracker.Web` — Blazor Server host: paged issue board, create/assign/status forms, shares `issues.db`.

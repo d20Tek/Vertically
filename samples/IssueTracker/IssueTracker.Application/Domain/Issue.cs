@@ -9,7 +9,19 @@ namespace IssueTracker.Application.Domain;
 /// </summary>
 public sealed class Issue
 {
-    private Issue() { }
+    internal Issue(Guid id, string key, string title, string? description, IssueStatus status, IssuePriority priority,
+                   Guid? assigneeId, DateTimeOffset createdUtc, DateTimeOffset updatedUtc)
+    {
+        Id = id;
+        Key = key;
+        Title = title;
+        Description = description;
+        Status = status;
+        Priority = priority;
+        AssigneeId = assigneeId;
+        CreatedUtc = createdUtc;
+        UpdatedUtc = updatedUtc;
+    }
 
     public Guid Id { get; private set; }
 
@@ -29,26 +41,6 @@ public sealed class Issue
 
     public DateTimeOffset UpdatedUtc { get; private set; }
 
-    public static Issue Create(string key, string title, string? description, IssuePriority priority)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-
-        var now = DateTimeOffset.UtcNow;
-        return new Issue
-        {
-            Id = Guid.CreateVersion7(),
-            Key = key.Trim(),
-            Title = title.Trim(),
-            Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
-            Status = IssueStatus.Open,
-            Priority = priority,
-            AssigneeId = null,
-            CreatedUtc = now,
-            UpdatedUtc = now,
-        };
-    }
-
     public Result<Unit> Assign(Guid userId)
     {
         if (Status == IssueStatus.Closed)
@@ -58,35 +50,24 @@ public sealed class Issue
         }
 
         AssigneeId = userId;
-        Touch();
-        return Result.Success();
+        return Touch();
     }
 
     public Result<Unit> Unassign()
     {
         AssigneeId = null;
-        Touch();
-        return Result.Success();
+        return Touch();
     }
 
     public Result<Unit> ChangeStatus(IssueStatus target)
     {
-        if (target == Status)
-        {
-            Touch();
-            return Result.Success();
-        }
+        if (target == Status) return Touch();
 
-        if (!IsLegalTransition(Status, target))
-        {
-            return Result.Failure(Error.Conflict(
-                "issue.status.illegalTransition",
-                $"Cannot change status from {Status} to {target}."));
-        }
-
-        Status = target;
-        Touch();
-        return Result.Success();
+        return IssueStatusPolicy.EnsureCanTransition(Status, target).Bind(_ =>
+            {
+                Status = target;
+                return Touch();
+            });
     }
 
     public Result<Unit> Rename(string title)
@@ -94,26 +75,18 @@ public sealed class Issue
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
         Title = title.Trim();
-        Touch();
-        return Result.Success();
+        return Touch();
     }
 
     public Result<Unit> Reprioritize(IssuePriority priority)
     {
         Priority = priority;
-        Touch();
-        return Result.Success();
+        return Touch();
     }
 
-    private static bool IsLegalTransition(IssueStatus from, IssueStatus to) =>
-        (from, to) switch
-        {
-            (IssueStatus.Open, IssueStatus.InProgress) => true,
-            (IssueStatus.InProgress, IssueStatus.Resolved) => true,
-            (IssueStatus.Resolved, IssueStatus.Closed) => true,
-            (IssueStatus.Resolved, IssueStatus.InProgress) => true,
-            _ => false,
-        };
-
-    private void Touch() => UpdatedUtc = DateTimeOffset.UtcNow;
+    private Result<Unit> Touch()
+    {
+        UpdatedUtc = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
 }
