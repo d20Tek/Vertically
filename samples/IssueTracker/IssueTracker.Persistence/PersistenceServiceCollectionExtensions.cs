@@ -23,10 +23,13 @@ public static class PersistenceServiceCollectionExtensions
 
     /// <summary>
     /// Registers <see cref="IssueDbContext"/> against the given SQLite connection string and exposes
-    /// it as <see cref="IIssueDbContext"/> for the Application layer's handlers.
+    /// it as <see cref="IIssueDbContext"/> for the Application layer's handlers. The connection string
+    /// may use the <c>{SharedDataDir}</c> token (see <see cref="SharedDataPath"/>) so all sample hosts
+    /// resolve the same physical <c>issues.db</c>.
     /// </summary>
     public static IServiceCollection AddIssueTrackerPersistence(this IServiceCollection services, string connectionString) =>
-        services.AddDbContext<IssueDbContext>(options => options.UseSqlite(connectionString))
+        services.AddDbContext<IssueDbContext>(
+                    options => options.UseSqlite(SharedDataPath.ResolveConnectionString(connectionString)))
                 .AddScoped<IIssueDbContext>(sp => sp.GetRequiredService<IssueDbContext>());
 
     /// <summary>

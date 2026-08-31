@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RootNamespace>IssueTracker.Api</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IssueTracker.Application\IssueTracker.Application.csproj" />
+    <ProjectReference Include="..\IssueTracker.Persistence\IssueTracker.Persistence.csproj" />
+  </ItemGroup>
+</Project>

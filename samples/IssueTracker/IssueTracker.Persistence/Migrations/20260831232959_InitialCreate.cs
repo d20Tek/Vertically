@@ -59,8 +59,8 @@ namespace IssueTracker.Persistence.Migrations
                     FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    CreatedUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    UpdatedUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
+                    CreatedUtc = table.Column<long>(type: "INTEGER", nullable: false),
+                    UpdatedUtc = table.Column<long>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,8 +78,8 @@ namespace IssueTracker.Persistence.Migrations
                     StatusId = table.Column<int>(type: "INTEGER", nullable: false),
                     PriorityId = table.Column<int>(type: "INTEGER", nullable: false),
                     AssigneeId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    CreatedUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    UpdatedUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
+                    CreatedUtc = table.Column<long>(type: "INTEGER", nullable: false),
+                    UpdatedUtc = table.Column<long>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -136,9 +136,9 @@ namespace IssueTracker.Persistence.Migrations
                 columns: new[] { "Id", "CreatedUtc", "Email", "FirstName", "LastName", "UpdatedUtc" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "ada@example.com", "Ada", "Lovelace", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "ben@example.com", "Ben", "Turing", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "clara@example.com", "Clara", "Hopper", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), 1308083945472000000L, "ada@example.com", "Ada", "Lovelace", 1308083945472000000L },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), 1308083945472000000L, "ben@example.com", "Ben", "Turing", 1308083945472000000L },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), 1308083945472000000L, "clara@example.com", "Clara", "Hopper", 1308083945472000000L }
                 });
 
             migrationBuilder.InsertData(
@@ -146,9 +146,9 @@ namespace IssueTracker.Persistence.Migrations
                 columns: new[] { "Id", "AssigneeId", "CreatedUtc", "Description", "Key", "PriorityId", "StatusId", "Title", "UpdatedUtc" },
                 values: new object[,]
                 {
-                    { new Guid("aaaaaaaa-0000-0000-0000-000000000001"), new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "Submitting the login form with an empty password returns a 500.", "ISSUE-1", 1, 1, "Login page throws on empty password", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) },
-                    { new Guid("aaaaaaaa-0000-0000-0000-000000000002"), new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "The dashboard takes several seconds to render for large datasets.", "ISSUE-2", 2, 2, "Improve dashboard load time", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) },
-                    { new Guid("aaaaaaaa-0000-0000-0000-000000000003"), null, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "ISSUE-3", 4, 1, "Add dark mode toggle", new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) }
+                    { new Guid("aaaaaaaa-0000-0000-0000-000000000001"), new Guid("11111111-1111-1111-1111-111111111111"), 1308083945472000000L, "Submitting the login form with an empty password returns a 500.", "ISSUE-1", 1, 1, "Login page throws on empty password", 1308083945472000000L },
+                    { new Guid("aaaaaaaa-0000-0000-0000-000000000002"), new Guid("22222222-2222-2222-2222-222222222222"), 1308083945472000000L, "The dashboard takes several seconds to render for large datasets.", "ISSUE-2", 2, 2, "Improve dashboard load time", 1308083945472000000L },
+                    { new Guid("aaaaaaaa-0000-0000-0000-000000000003"), null, 1308083945472000000L, null, "ISSUE-3", 4, 1, "Add dark mode toggle", 1308083945472000000L }
                 });
 
             migrationBuilder.CreateIndex(

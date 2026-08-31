@@ -13,7 +13,7 @@ internal sealed class IssueDbContextFactory : IDesignTimeDbContextFactory<IssueD
     public IssueDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<IssueDbContext>()
-            .UseSqlite("Data Source=issues.db")
+            .UseSqlite(SharedDataPath.ResolveConnectionString("Data Source={SharedDataDir}/issues.db"))
             .Options;
 
         return new IssueDbContext(options);

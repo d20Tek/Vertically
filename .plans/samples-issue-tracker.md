@@ -134,8 +134,10 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
   DB constraint), returning a `Result` conflict failure on collision.
 
 ### Timestamps
-- `DateTimeOffset` for `CreatedUtc`/`UpdatedUtc`; SQLite persists as ISO-8601 TEXT which sorts correctly,
-  so `ORDER BY CreatedUtc` (default sort for the paged query) works as expected.
+- `DateTimeOffset` for `CreatedUtc`/`UpdatedUtc`. **SQLite cannot `ORDER BY` a `DateTimeOffset` column**,
+  so the context applies a `DateTimeOffsetToBinaryConverter` (via `ConfigureConventions`) that persists
+  them as a chronologically sortable `INTEGER`. This makes `ORDER BY CreatedUtc` (default sort for the
+  paged query) translate server-side.
 
 ## Application Library — Contents
 - **Domain**
@@ -242,9 +244,9 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 9. [x] Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
 10. [x] Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), a persistent `Counters` table + `NextIssueKeyNumberAsync` (Option B, SQLite-compatible key generation), and deterministic seed (lookup tables + users + issues).
 11. [x] Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
-12. [ ] Create `Samples/IssueTracker/IssueTracker.Api` Minimal API host mapping each slice to an endpoint with `Result<T>`→HTTP translation.
-13. [ ] Register the samples projects in `d20tek-vertically.slnx` under a `/Samples/` folder.
-14. [ ] Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
+12. [x] Create `Samples/IssueTracker/IssueTracker.Api` Minimal API host mapping each slice to an endpoint with `Result<T>`→HTTP translation.
+13. [x] Register the samples projects in `d20tek-vertically.slnx` under a `/Samples/` folder.
+14. [x] Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
 
 ## Deferred (future plans)
 - `IssueTracker.Web` — Blazor Server host: paged issue board, create/assign/status forms, shares `issues.db`.

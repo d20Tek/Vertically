@@ -1,6 +1,7 @@
 using IssueTracker.Application.Domain;
 using IssueTracker.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace IssueTracker.Persistence;
 
@@ -47,5 +48,15 @@ public sealed class IssueDbContext(DbContextOptions<IssueDbContext> options) : D
                     .ApplyConfiguration(new IssueConfiguration())
                     .ApplyConfiguration(new CounterConfiguration())
                     .ApplySeedData();
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // SQLite cannot ORDER BY a DateTimeOffset column. Persisting via the binary converter stores a
+        // chronologically sortable value so server-side sorting (e.g. default CreatedUtc sort) works.
+        configurationBuilder.Properties<DateTimeOffset>()
+                            .HaveConversion<DateTimeOffsetToBinaryConverter>();
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IssueTracker.Persistence.Migrations
 {
     [DbContext(typeof(IssueDbContext))]
-    [Migration("20260831214318_InitialCreate")]
+    [Migration("20260831232959_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,8 +28,8 @@ namespace IssueTracker.Persistence.Migrations
                     b.Property<Guid?>("AssigneeId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedUtc")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
@@ -53,8 +53,8 @@ namespace IssueTracker.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("UpdatedUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UpdatedUtc")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -76,35 +76,35 @@ namespace IssueTracker.Persistence.Migrations
                         {
                             Id = new Guid("aaaaaaaa-0000-0000-0000-000000000001"),
                             AssigneeId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Description = "Submitting the login form with an empty password returns a 500.",
                             Key = "ISSUE-1",
                             Priority = 1,
                             Status = 1,
                             Title = "Login page throws on empty password",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         },
                         new
                         {
                             Id = new Guid("aaaaaaaa-0000-0000-0000-000000000002"),
                             AssigneeId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Description = "The dashboard takes several seconds to render for large datasets.",
                             Key = "ISSUE-2",
                             Priority = 2,
                             Status = 2,
                             Title = "Improve dashboard load time",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         },
                         new
                         {
                             Id = new Guid("aaaaaaaa-0000-0000-0000-000000000003"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Key = "ISSUE-3",
                             Priority = 4,
                             Status = 1,
                             Title = "Add dark mode toggle",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         });
                 });
 
@@ -207,8 +207,8 @@ namespace IssueTracker.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("CreatedUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("CreatedUtc")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -225,8 +225,8 @@ namespace IssueTracker.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("UpdatedUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UpdatedUtc")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -239,29 +239,29 @@ namespace IssueTracker.Persistence.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Email = "ada@example.com",
                             FirstName = "Ada",
                             LastName = "Lovelace",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Email = "ben@example.com",
                             FirstName = "Ben",
                             LastName = "Turing",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedUtc = 1308083945472000000L,
                             Email = "clara@example.com",
                             FirstName = "Clara",
                             LastName = "Hopper",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedUtc = 1308083945472000000L
                         });
                 });
 
