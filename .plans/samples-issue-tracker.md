@@ -235,8 +235,8 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 4. [x] Add the `IIssueDbContext` interface (`Issues` + `Users` + lookup `DbSet`s + `SaveChangesAsync`) in Application.
 5. [x] Implement the `CreateIssue` feature (command, validator, handler against `IIssueDbContext`, DTO; auto-generates unique `Key`). *Interim key uses a random + retry loop; replaced by the DB sequence in step 10.*
 6. [x] Implement the `AssignIssue` (validates target `User` exists via `AssigneeId` FK) and `ChangeIssueStatus` command features with business-rule `Result` failures.
-7. [ ] Implement the `GetIssueById` query feature and the `GetUsers` query feature (assignee selector source).
-8. [ ] Implement the `GetIssues` paged/sorted/filtered query feature using `SortedFilteredPagedRequest` and `PageOf<T>`.
+7. [x] Implement the `GetIssueById` query feature and the `GetUsers` query feature (assignee selector source).
+8. [x] Implement the `GetIssues` paged/sorted/filtered query feature using `SortedFilteredPagedRequest` and `PageOf<T>`.
 9. [ ] Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
 10. [ ] Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), the `IssueKeySequence` database sequence + `NextIssueKeyNumberAsync` (Option B key generation), and deterministic seed (lookup tables + users + issues).
 11. [ ] Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
