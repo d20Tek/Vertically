@@ -5,7 +5,6 @@ using D20Tek.Vertically.Registration;
 using IssueTracker.Application.Domain;
 using IssueTracker.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
 
 namespace IssueTracker.Application.Features.Issues;
 
@@ -67,7 +66,7 @@ public sealed class CreateIssue : IFeature
 
         private async Task<Result<string>> ResolveKeyAsync(Command command, CancellationToken ct) =>
             Result<string>.Success(
-                string.IsNullOrWhiteSpace(command.Key) ? await GenerateUniqueKeyAsync(ct) : command.Key.Trim());
+                string.IsNullOrWhiteSpace(command.Key) ? await GenerateKeyAsync(ct) : command.Key.Trim());
 
         private async Task<Result<string>> EnsureKeyIsUniqueAsync(string key, CancellationToken ct) =>
             await _dbContext.Issues.AnyAsync(i => i.Key == key, ct)
@@ -81,16 +80,7 @@ public sealed class CreateIssue : IFeature
             return issue;
         }
 
-        private async Task<string> GenerateUniqueKeyAsync(CancellationToken cancellationToken)
-        {
-            string key;
-            do
-            {
-                key = $"ISSUE-{Random.Shared.Next(1000, 10000)}";
-            }
-            while (await _dbContext.Issues.AnyAsync(i => i.Key == key, cancellationToken));
-
-            return key;
-        }
+        private async Task<string> GenerateKeyAsync(CancellationToken cancellationToken) =>
+            $"ISSUE-{await _dbContext.NextIssueKeyNumberAsync(cancellationToken)}";
     }
 }

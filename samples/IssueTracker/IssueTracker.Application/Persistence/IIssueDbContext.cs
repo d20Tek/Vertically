@@ -18,5 +18,12 @@ public interface IIssueDbContext
 
     DbSet<IssuePriorityRef> IssuePriorities { get; }
 
+    /// <summary>
+    /// Atomically reserves and returns the next monotonic number used to build a friendly issue
+    /// <c>Key</c> (e.g. <c>ISSUE-{n}</c>). Backed by a persistent counter so keys are collision-free
+    /// without a scan-and-retry loop.
+    /// </summary>
+    Task<long> NextIssueKeyNumberAsync(CancellationToken cancellationToken = default);
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

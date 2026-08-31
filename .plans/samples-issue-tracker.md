@@ -65,8 +65,8 @@ reference data (which also carries display names/sort order for UIs).
 | `Key` | `string` | TEXT | Friendly ref e.g. `ISSUE-1024`; **unique index**; auto-generated on create, user may set/change |
 | `Title` | `string` | TEXT | Required; max length 200 |
 | `Description` | `string?` | TEXT | Optional; max length 4000 |
-| `StatusId` | `IssueStatus` | INTEGER | **FK → `IssueStatuses.Id`**; enum value stored as int; default `Open` |
-| `PriorityId` | `IssuePriority` | INTEGER | **FK → `IssuePriorities.Id`**; enum value stored as int; default `Medium` |
+| `StatusId` | `IssueStatus` | INTEGER | **FK → `IssueStatuses.Id`**; enum value stored as int; new issues start `Open` (set by the `Issue.Create` factory, not a DB default) |
+| `PriorityId` | `IssuePriority` | INTEGER | **FK → `IssuePriorities.Id`**; enum value stored as int; **required** on create (no DB/app default) |
 | `AssigneeId` | `Guid?` | TEXT | **FK → `Users.Id`**; nullable = unassigned |
 | `CreatedUtc` | `DateTimeOffset` | TEXT | Set on insert; used for default `ORDER BY` (SQLite stores as ISO-8601 TEXT, sortable) |
 | `UpdatedUtc` | `DateTimeOffset` | TEXT | Set on every mutation |
@@ -127,8 +127,9 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
   - Assignment blocked when `Closed`.
 
 ### Key generation & uniqueness
-- On create, auto-generate `Key` as `ISSUE-{n}` using a simple monotonic counter (seed base + increment;
-  implementation detail decided in the persistence step — likely `MAX(sequence)+1` or a tiny counter row).
+- On create, auto-generate `Key` as `ISSUE-{n}` using a simple monotonic counter. **SQLite does not
+  support EF Core database sequences (`HasSequence`)**, so generation uses a persistent counter row
+  (`Counters` table) incremented atomically per reservation.
 - `Key` has a **unique index**; user-supplied or changed keys are validated for uniqueness (validator +
   DB constraint), returning a `Result` conflict failure on collision.
 
@@ -168,10 +169,11 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 - Entity configuration (keys, max lengths, unique index on `Key`, unique index on `User.Email`, FK
   relationships from `Issue` to the lookup tables and to `Users` (`AssigneeId`, **`OnDelete(SetNull)`**),
   non-unique indexes on `StatusId`/`PriorityId`/`AssigneeId`, enum-to-FK mapping).
-- **Issue key generation (Option B):** define a database sequence (`IssueKeySequence`) in `IssueDbContext`
-  and expose a `Task<long> NextIssueKeyNumberAsync(CancellationToken)` on `IIssueDbContext` so the
-  `CreateIssue` handler can obtain a collision-free, monotonic number and format it as `ISSUE-{n}`.
-  Replaces the interim random-key + retry-loop currently in the handler.
+- **Issue key generation (Option B — SQLite counter table):** a persistent `Counters` table (name/value)
+  backs a `Task<long> NextIssueKeyNumberAsync(CancellationToken)` on `IIssueDbContext`, implemented in
+  `IssueDbContext` by loading (or creating) the `issue-key` counter row, incrementing it, and saving.
+  The `CreateIssue` handler formats the result as `ISSUE-{n}`. This replaces the interim random-key +
+  retry-loop, and is used instead of a DB sequence because the SQLite provider does not support `HasSequence`.
 - Deterministic **seed data**: the two lookup tables (statuses, priorities), a fixed set of users, plus a
   fixed set of issues (some assigned to seeded users) so all hosts start identically and pagination is
   demoable.
@@ -208,7 +210,7 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 - **Rich (encapsulated) `Issue` aggregate** with a factory + behavior methods enforcing the status
   transition rules and returning `Result`.
 - **Friendly `Key`** (`ISSUE-n`) auto-generated on create, user-settable/changeable, with a unique index.
-  Generation uses a **database sequence** (Option B) surfaced through `IIssueDbContext` for collision-free,
+  Generation uses a **persistent counter table** (Option B, SQLite-compatible) surfaced through `IIssueDbContext` for collision-free,
   monotonic numbers.
 - **`Users` table** referenced by `Issues.AssigneeId` (nullable FK) with **`ON DELETE SET NULL`** —
   deleting a user unassigns their issues. Retrievable via `GetUsers` for UI assignee selectors.
@@ -233,13 +235,13 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 2. [x] Create `Samples/IssueTracker/IssueTracker.Application` classlib referencing D20Tek.Vertically + Microsoft.EntityFrameworkCore.
 3. [x] Add the `IssueStatus`/`IssuePriority` enums, the `IssueStatusRef`/`IssuePriorityRef` lookup entities, the `User` entity, and the encapsulated `Issue` aggregate (factory + behavior methods + transition rules).
 4. [x] Add the `IIssueDbContext` interface (`Issues` + `Users` + lookup `DbSet`s + `SaveChangesAsync`) in Application.
-5. [x] Implement the `CreateIssue` feature (command, validator, handler against `IIssueDbContext`, DTO; auto-generates unique `Key`). *Interim key uses a random + retry loop; replaced by the DB sequence in step 10.*
+5. [x] Implement the `CreateIssue` feature (command, validator, handler against `IIssueDbContext`, DTO; auto-generates unique `Key`). *Interim key used a random + retry loop; replaced by the counter-table `NextIssueKeyNumberAsync` in step 10.*
 6. [x] Implement the `AssignIssue` (validates target `User` exists via `AssigneeId` FK) and `ChangeIssueStatus` command features with business-rule `Result` failures.
 7. [x] Implement the `GetIssueById` query feature and the `GetUsers` query feature (assignee selector source).
 8. [x] Implement the `GetIssues` paged/sorted/filtered query feature using `SortedFilteredPagedRequest` and `PageOf<T>`.
-9. [ ] Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
-10. [ ] Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), the `IssueKeySequence` database sequence + `NextIssueKeyNumberAsync` (Option B key generation), and deterministic seed (lookup tables + users + issues).
-11. [ ] Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
+9. [x] Create `Samples/IssueTracker/IssueTracker.Persistence` classlib referencing IssueTracker.Application + EFCore.Sqlite.
+10. [x] Implement `IssueDbContext : DbContext, IIssueDbContext` with entity configuration (unique `Key`, unique `User.Email`, lookup + `Users` FKs, indexes), a persistent `Counters` table + `NextIssueKeyNumberAsync` (Option B, SQLite-compatible key generation), and deterministic seed (lookup tables + users + issues).
+11. [x] Add the initial EF Core migration and the `AddIssueTracker` composition helper (context + `IIssueDbContext` + `AddVertically` + migrate/seed).
 12. [ ] Create `Samples/IssueTracker/IssueTracker.Api` Minimal API host mapping each slice to an endpoint with `Result<T>`→HTTP translation.
 13. [ ] Register the samples projects in `d20tek-vertically.slnx` under a `/Samples/` folder.
 14. [ ] Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
