@@ -25,8 +25,7 @@ internal static class IssueQueryBinder
         };
     }
 
-    private static int ParseInt(string? value, int fallback) =>
-        int.TryParse(value, out var parsed) ? parsed : fallback;
+    private static int ParseInt(string? value, int fallback) => int.TryParse(value, out var parsed) ? parsed : fallback;
 
     private static IReadOnlyList<SortExpression> ParseSorts(IEnumerable<string?> values)
     {

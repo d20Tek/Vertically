@@ -4,6 +4,10 @@
     <RootNamespace>IssueTracker.Api</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\IssueTracker.Application\IssueTracker.Application.csproj" />
     <ProjectReference Include="..\IssueTracker.Persistence\IssueTracker.Persistence.csproj" />
   </ItemGroup>

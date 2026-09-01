@@ -26,7 +26,7 @@ internal static class ResultHttpExtensions
         if (primary.Type == ErrorType.Validation || primary.Type == ErrorType.Invalid)
         {
             var failures = errors.GroupBy(e => e.Code, StringComparer.Ordinal)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.Message).ToArray());
+                                 .ToDictionary(g => g.Key, g => g.Select(e => e.Message).ToArray());
             return Results.ValidationProblem(failures, statusCode: status);
         }
 
