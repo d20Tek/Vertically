@@ -42,7 +42,7 @@ public sealed class AssignIssue : IFeature
         private readonly IIssueDbContext _dbContext = dbContext;
 
         public Task<Result<IssueResponse>> HandleAsync(Command command, CancellationToken cancellationToken = default) =>
-            FindIssueAsync(command.IssueId, cancellationToken)
+            _dbContext.FindIssueAsync(command.IssueId, cancellationToken: cancellationToken)
                 .BindAsync(issue => EnsureUserExistsAsync(command.AssigneeId, issue, cancellationToken))
                 .BindAsync(issue => Task.FromResult(issue.Assign(command.AssigneeId).Map(_ => issue)))
                 .MapAsync(async issue =>
@@ -50,14 +50,6 @@ public sealed class AssignIssue : IFeature
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     return IssueResponse.FromIssue(issue);
                 });
-
-        private async Task<Result<Issue>> FindIssueAsync(Guid issueId, CancellationToken ct)
-        {
-            var issue = await _dbContext.Issues.FirstOrDefaultAsync(i => i.Id == issueId, ct);
-            return issue is null
-                ? Result<Issue>.Failure(Error.NotFound("issue.notFound", $"Issue '{issueId}' was not found."))
-                : Result<Issue>.Success(issue);
-        }
 
         private async Task<Result<Issue>> EnsureUserExistsAsync(Guid assigneeId, Issue issue, CancellationToken ct) =>
             await _dbContext.Users.AnyAsync(u => u.Id == assigneeId, ct)

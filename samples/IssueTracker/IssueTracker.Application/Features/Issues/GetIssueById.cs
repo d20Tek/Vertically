@@ -1,9 +1,9 @@
 using D20Tek.Functional;
+using D20Tek.Functional.Async;
 using D20Tek.Vertically;
 using D20Tek.Vertically.Registration;
 using IssueTracker.Application.Domain;
 using IssueTracker.Application.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.Application.Features.Issues;
 
@@ -37,15 +37,8 @@ public sealed class GetIssueById : IFeature
     {
         private readonly IIssueDbContext _dbContext = dbContext;
 
-        public async Task<Result<IssueResponse>> HandleAsync(Query query, CancellationToken cancellationToken = default)
-        {
-            var issue = await _dbContext.Issues
-                .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.Id == query.IssueId, cancellationToken);
-
-            return issue is null
-                ? Result<IssueResponse>.Failure(Error.NotFound("issue.notFound", $"Issue '{query.IssueId}' was not found."))
-                : Result<IssueResponse>.Success(IssueResponse.FromIssue(issue));
-        }
+        public Task<Result<IssueResponse>> HandleAsync(Query query, CancellationToken cancellationToken = default) =>
+            _dbContext.FindIssueAsync(query.IssueId, asNoTracking: true, cancellationToken)
+                .MapAsync(issue => Task.FromResult(IssueResponse.FromIssue(issue)));
     }
 }

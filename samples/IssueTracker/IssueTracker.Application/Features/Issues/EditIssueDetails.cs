@@ -4,7 +4,6 @@ using D20Tek.Vertically;
 using D20Tek.Vertically.Registration;
 using IssueTracker.Application.Domain;
 using IssueTracker.Application.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.Application.Features.Issues;
 
@@ -49,21 +48,13 @@ public sealed class EditIssueDetails : IFeature
         private readonly IIssueDbContext _dbContext = dbContext;
 
         public Task<Result<IssueResponse>> HandleAsync(Command command, CancellationToken cancellationToken = default) =>
-            FindIssueAsync(command.IssueId, cancellationToken)
+            _dbContext.FindIssueAsync(command.IssueId, cancellationToken: cancellationToken)
                 .BindAsync(issue => Task.FromResult(UpdateIssueDetails(issue, command)))
                 .MapAsync(async issue =>
                 {
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     return IssueResponse.FromIssue(issue);
                 });
-
-        private async Task<Result<Issue>> FindIssueAsync(Guid issueId, CancellationToken ct)
-        {
-            var issue = await _dbContext.Issues.FirstOrDefaultAsync(i => i.Id == issueId, ct);
-            return issue is null
-                ? Result<Issue>.Failure(Error.NotFound("issue.notFound", $"Issue '{issueId}' was not found."))
-                : Result<Issue>.Success(issue);
-        }
 
         private static Result<Issue> UpdateIssueDetails(Issue issue, Command command) =>
             issue.Rename(command.Title)
