@@ -249,6 +249,130 @@ FK columns. The lookup tables exist for referential integrity, human-readable in
 14. [x] Build the solution and run the `IssueTracker.Api` host to validate endpoints and pagination end-to-end.
 
 ## Deferred (future plans)
-- `IssueTracker.Web` — Blazor Server host: paged issue board, create/assign/status forms, shares `issues.db`.
+- `IssueTracker.Web` — Blazor Server host: paged issue board, create/assign/status forms, shares `issues.db`. **Plan added below.**
 - `IssueTracker.Cli` — CLI host: `issue add/list/assign/status` verbs, `--status/--priority/--page/--size` options.
 - Documentation pass under `docs/` describing the shared-slice pattern across the three hosts.
+
+---
+
+# IssueTracker.Web Sample — Creation Plan (Blazor Server)
+
+> Status: planning only (no code yet)
+> Scope of this plan: the **`IssueTracker.Web`** host (host #2). Reuses the existing
+> **Application** and **Persistence** libraries unchanged — no new slices, domain, or schema.
+
+## Goal
+Add a second host, **`IssueTracker.Web`**, that consumes the *same* vertical slices as the API through
+the shared Application/Persistence libraries — proving the "write slices once, host them anywhere"
+promise with an interactive UI. The Web host renders an issue board and CRUD-ish workflows entirely by
+dispatching the existing features (`CreateIssue`, `AssignIssue`, `ChangeIssueStatus`, `GetIssueById`,
+`GetIssues`, `GetUsers`) and translating `Result<T>` into UI state rather than HTTP responses.
+
+## Why Blazor Server (locked earlier)
+- **Shares the SQLite file directly** — the server-side render host runs in-process with EF Core, so it
+  points at the *same* repo-relative `issues.db` via the `{SharedDataDir}` token, exactly like the API.
+- No serialization boundary or separate API contract needed; components call handlers directly through DI,
+  the same way the API endpoints do.
+- Keeps the sample focused on the shared-slice pattern instead of WASM hosting/transport concerns.
+
+## Architecture & Dependency Direction
+```
+IssueTracker.Application  ← IssueTracker.Persistence  ← IssueTracker.Web (Blazor Server)
+```
+- **`IssueTracker.Web`** references `IssueTracker.Application` (to dispatch slices) and
+  `IssueTracker.Persistence` (to call `AddIssueTrackerPersistence`). It composes behaviors itself via
+  `AddIssueTrackerApplication(behaviors => ...)`, exactly like the API host does — behavior policy is a
+  host decision (the Web host may pick a different set than the API, e.g. logging + validation without
+  exception-to-result, since it surfaces failures as UI messages rather than problem details).
+- Points at the **same** shared `issues.db` (via `{SharedDataDir}` token + `SharedDataPath`).
+- Reuses `MigrateIssueTrackerAsync()` for the startup migrate/seed convenience (sample-only).
+
+## Composition Root (`Program.cs`)
+Mirror the API host's split registration, adapted for Blazor Server:
+- `builder.Services.AddRazorComponents().AddInteractiveServerComponents();`
+- Shared connection string: `builder.Configuration.GetConnectionString("IssueTracker") ?? "Data Source={SharedDataDir}/issues.db"`.
+- `builder.Services.AddIssueTrackerApplication(behaviors => behaviors.AddLogging().AddValidation());`
+  (host-chosen behavior policy — no exception-to-result by default; revisit if desired).
+- `builder.Services.AddIssueTrackerPersistence(connectionString);`
+- `await app.Services.MigrateIssueTrackerAsync();` on startup (sample convenience; same NOTE as the API).
+- `app.MapRazorComponents<App>().AddInteractiveServerRenderMode();`
+- Standard Blazor middleware: `UseStaticFiles()`/`MapStaticAssets()`, `UseAntiforgery()`, error handling.
+- Logging config mirrors the API: `appsettings.json` + `appsettings.Development.json` with the same
+  category levels (`D20Tek.Vertically` at Information/Debug, EF command logging quieted to `Warning`).
+
+## UI Surface (components → slices)
+Each page/component dispatches an existing feature; no new Application code.
+- **Issues board / list** (`/` or `/issues`) — dispatches `GetIssues` with paging/sort/filter controls
+  (status, priority, assignee filters; sort by created date). Renders `PageOf<IssueResponse>` with paging
+  UI. This is the primary showcase of the pagination query types in a UI.
+- **Issue detail** (`/issues/{id}`) — dispatches `GetIssueById`; not-found `Result` → a friendly
+  "not found" UI state.
+- **Create issue** (dialog or `/issues/new`) — form bound to `CreateIssue.Command`; validation failures
+  from the pipeline surface as inline field/summary errors; success navigates to the new issue / refreshes
+  the board.
+- **Assign issue** — assignee dropdown populated by `GetUsers`; dispatches `AssignIssue`; business-rule
+  failures (e.g. issue closed) shown as a UI message.
+- **Change status** — status control dispatches `ChangeIssueStatus`; illegal-transition `Result` failures
+  shown as a UI message (reusing the domain's transition rules).
+
+## Result<T> → UI Translation
+The Web analog of the API's `ResultHttpExtensions`: a small helper that maps `Result<T>` to component
+state instead of HTTP.
+- Success → bind value / navigate / close dialog.
+- `ValidationErrors` → per-field + summary messages in the form (ideally integrated with `EditForm`
+  validation, e.g. a custom `ValidationMessageStore` bridge).
+- Not-found → dedicated "not found" render state.
+- Business-rule failure → non-blocking error/toast message.
+- Consider a shared `IssueTracker.Web` component/service (`ResultPresenter` / extension methods) so all
+  components translate results consistently.
+
+## Shared UI Concerns
+- Enum display: reuse the lookup reference data (status/priority names + sort order) for dropdowns and
+  badges; keep the same enum-name serialization intent as the API for consistency.
+- A simple layout with nav (Board / New Issue) and a consistent status/priority badge styling.
+- Keep styling minimal (sample scope) — focus on demonstrating slice reuse, not visual polish.
+
+## Key Decisions (locked / proposed)
+- **Blazor Server**, interactive server render mode (locked earlier), in-process EF Core, shared
+  `issues.db`.
+- **Reuse Application/Persistence unchanged** — zero new slices, domain, DTOs, or schema; the whole point
+  is host reuse.
+- **Split registration** via `AddIssueTrackerApplication(behaviors => ...)` + `AddIssueTrackerPersistence(...)`,
+  with the Web host owning its behavior policy (proposed: logging + validation; no exception-to-result).
+- **Startup migrate/seed** via `MigrateIssueTrackerAsync()` (sample convenience) — same non-production NOTE.
+- **`Result<T>` → UI** translation helper as the Web analog of `ResultHttpExtensions`.
+
+## Open Defaults (change if desired)
+- **Create/assign/status UX:** dialogs vs dedicated pages.
+- **Validation integration:** bridge pipeline `ValidationErrors` into `EditForm`/`ValidationMessageStore`
+  vs a simpler summary panel.
+- **Behavior policy:** logging + validation only (proposed) vs matching the API's full set.
+- **Board vs table:** simple paged table (proposed) vs a status-column kanban board.
+
+## Risks & Notes
+- **Blazor Server + EF Core DbContext lifetime:** components can outlive a scope; be deliberate about
+  `IIssueDbContext`/`DbContext` scoping. Since handlers are resolved per-dispatch (scoped) this is usually
+  fine, but avoid capturing a `DbContext` across renders. Consider `IDbContextFactory` only if a concrete
+  lifetime problem shows up (note it, don't pre-optimize).
+- **Concurrency with the API sharing one `issues.db`:** SQLite file locking (WAL mode) is generally fine
+  for a sample, but simultaneous writes from Web + API could surface transient locks; acceptable for a
+  demo, worth a note.
+- **Antiforgery / static assets:** ensure the standard Blazor middleware order is correct.
+- `TreatWarningsAsErrors=true` + inherited doc-file settings — likely disable `GenerateDocumentationFile`
+  for the Web project like the other samples.
+- Samples build in CI but are not unit-tested by this plan.
+
+## Steps
+1. [x] Create `Samples/IssueTracker/IssueTracker.Web` Blazor Server project (interactive server render mode) referencing `IssueTracker.Application` + `IssueTracker.Persistence`.
+2. [x] Configure the composition root: `AddRazorComponents().AddInteractiveServerComponents()`, shared connection string, `AddIssueTrackerApplication(behaviors => ...)`, `AddIssueTrackerPersistence(...)`, and startup `MigrateIssueTrackerAsync()`.
+3. [x] Add `appsettings.json` + `appsettings.Development.json` mirroring the API host's logging levels and the `{SharedDataDir}` connection string.
+4. [x] Add a `Result<T>` → UI translation helper (Web analog of `ResultHttpExtensions`) for success/validation/not-found/business-rule states.
+5. [x] Build the issues board page dispatching `GetIssues` with paging/sort/filter controls, rendering `PageOf<IssueResponse>`.
+6. [ ] Build the issue detail page dispatching `GetIssueById` with a not-found UI state.
+7. [ ] Build the create-issue form bound to `CreateIssue.Command` with pipeline validation surfaced inline.
+8. [ ] Build the assign action (assignee dropdown from `GetUsers` → `AssignIssue`) with business-rule failure messaging.
+9. [ ] Build the change-status action dispatching `ChangeIssueStatus` with illegal-transition messaging.
+10. [ ] Add layout/nav and shared status/priority badge styling using the lookup reference data.
+11. [ ] Register `IssueTracker.Web` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
+12. [ ] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.
+

@@ -156,3 +156,66 @@ The reference implementation is the source of truth for the algorithm. Key mecha
 - Reference implementation: `samples/IssueTracker/IssueTracker.Application/Features/Issues/IssueQueryTranslator.cs`
 - Consumer: `samples/IssueTracker/IssueTracker.Application/Features/Issues/GetIssues.cs`
 - Core description types: `src/D20Tek.Vertically/Queries/Pagination/*`
+
+---
+
+## 2. Registration Origin Tracking + Diagnostics for `HandlerRegistration`
+
+### Status
+Proposed. No implementation yet. Motivated by the observation that once registrations collapse into
+`ServiceDescriptor`s, there is no way to tell *how* a handler/validator got registered.
+
+### Motivation
+Today `RegisterFromAssembly` discovers registrations through two distinct paths (feature self-registration
+in phase 1, loose assembly scan in phase 2), and there is also explicit per-type registration via
+`IHandlerRegistrationBuilder`. All of these converge on the same `HandlerRegistration` record and are then
+materialized into plain `ServiceDescriptor`s, which carry no provenance metadata. As a result, developers
+cannot inspect the built `ServiceCollection` (or the Vertically builder) to answer "did this handler come
+from an `IFeature`, a scan, or a manual registration?" This makes debugging registration surprises
+(duplicates, unexpected discoveries, missing handlers) harder than it should be.
+
+### Proposed change
+Add an origin flag to `HandlerRegistration` (and the parallel validator registration data) capturing how
+each entry was registered:
+
+```csharp
+public enum RegistrationSource
+{
+	Feature,    // registered via IFeature.Register (phase 1 discovery)
+	Scan,       // discovered by the loose assembly scan (phase 2)
+	Manual,     // registered explicitly via IHandlerRegistrationBuilder.Add<...>()
+	Generated   // future: emitted by a source generator (see below)
+}
+```
+
+- Set `Feature` when a feature's `Register` call adds the registration (phase 1).
+- Set `Scan` for entries added by the phase 2 loose scan.
+- Set `Manual` for the explicit `Add<THandler>()` / `AddValidator<TValidator>()` registration paths.
+- Reserve `Generated` for a future source-generated registration path (avoids reflection/scanning; ties in
+  with the AOT/trim considerations noted in feature #1).
+
+### Developer-facing surface
+Two complementary ways to consume the origin data:
+
+1. **Inspect the builder data directly** — expose the collected registrations (with their
+   `RegistrationSource`) as a read-only list on the builder so tests/tools can assert on provenance
+   during composition.
+2. **Diagnostic dump method** — a helper (e.g., `builder.DumpRegistrations()` or a
+   `VerticallyDiagnostics.PrintRegistrations(...)`) that writes a formatted table to the console/logger
+   for debug purposes: request type, handler impl, command/query, and the `RegistrationSource`. Intended
+   for on-demand debugging, not always-on.
+
+### Design notes / open questions
+- `ServiceDescriptor` has no metadata slot, so origin must be captured at registration time on the
+  Vertically-side records (before `Build()` materializes descriptors) and surfaced from the builder, not
+  the `ServiceCollection`.
+- Decide whether the diagnostics live in the core package or a separate `*.Diagnostics` companion to keep
+  the core surface lean.
+- Consider whether validators need the same origin tracking as handlers (likely yes, for symmetry).
+- Consider a duplicate/overlap report (feature + scan registering the same type) as a natural extension.
+
+### Source references
+- Registration record: `src/D20Tek.Vertically/Registration/HandlerRegistration.cs`
+- Two-phase discovery: `src/D20Tek.Vertically/Registration/HandlerRegistrationBuilder.cs`
+- Builder materialization: `src/D20Tek.Vertically/Registration/VerticallyBuilder.cs` (`Build`)
+
