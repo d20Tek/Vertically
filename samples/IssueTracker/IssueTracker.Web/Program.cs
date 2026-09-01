@@ -14,6 +14,7 @@ var connectionString = builder.Configuration.GetConnectionString("IssueTracker")
 // The Web host surfaces failures as UI messages, so it enables logging + validation
 // (no exception-to-result — components translate Result<T> into UI state directly).
 builder.Services.AddIssueTrackerApplication(behaviors => behaviors
+    .AddExceptionToResult()
     .AddLogging()
     .AddValidation());
 builder.Services.AddIssueTrackerPersistence(connectionString);

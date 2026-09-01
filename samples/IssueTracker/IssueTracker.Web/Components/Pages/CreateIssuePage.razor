@@ -1,0 +1,51 @@
+@page "/issues/new"
+@using IssueTracker.Application.Domain
+
+<PageTitle>New issue</PageTitle>
+
+<div class="form-header">
+    <a class="form-back" href="/issues">Back to issues</a>
+    <h1>New issue</h1>
+</div>
+
+<div class="form-card">
+    <EditForm EditContext="_editContext" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+
+        @if (_errorMessage is not null)
+        {
+            <div class="form-message" role="alert">@_errorMessage</div>
+        }
+
+        <div class="form-field">
+            <label for="issue-title">Title</label>
+            <InputText id="issue-title" class="form-control" @bind-Value="_model.Title" placeholder="Short summary of the issue" />
+            <ValidationMessage For="() => _model.Title" />
+        </div>
+
+        <div class="form-field">
+            <label for="issue-priority">Priority</label>
+            <InputSelect id="issue-priority" class="form-control" @bind-Value="_model.Priority">
+                @foreach (var priority in Enum.GetValues<IssuePriority>())
+                {
+                    <option value="@priority">@priority</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => _model.Priority" />
+        </div>
+
+        <div class="form-field">
+            <label for="issue-description">Description</label>
+            <InputTextArea id="issue-description" class="form-control form-control--area" rows="6"
+                           @bind-Value="_model.Description" placeholder="Optional details, steps to reproduce, context…" />
+            <ValidationMessage For="() => _model.Description" />
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn" @onclick="Cancel" disabled="@_submitting">Cancel</button>
+            <button type="submit" class="btn btn--primary" disabled="@_submitting">
+                @(_submitting ? "Creating…" : "Create issue")
+            </button>
+        </div>
+    </EditForm>
+</div>

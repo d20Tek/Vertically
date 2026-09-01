@@ -15,6 +15,7 @@ internal static class IssueTrackerSeed
     private static readonly Guid AdaId = new("11111111-1111-1111-1111-111111111111");
     private static readonly Guid BenId = new("22222222-2222-2222-2222-222222222222");
     private static readonly Guid ClaraId = new("33333333-3333-3333-3333-333333333333");
+    private static readonly Guid PedroId = new("44444444-4444-4444-4444-444444444444");
 
     private static readonly Guid Issue1Id = new("aaaaaaaa-0000-0000-0000-000000000001");
     private static readonly Guid Issue2Id = new("aaaaaaaa-0000-0000-0000-000000000002");
@@ -37,7 +38,8 @@ internal static class IssueTrackerSeed
         modelBuilder.Entity<User>().HasData(
             new { Id = AdaId, FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com", CreatedUtc = SeedUtc, UpdatedUtc = SeedUtc },
             new { Id = BenId, FirstName = "Ben", LastName = "Turing", Email = "ben@example.com", CreatedUtc = SeedUtc, UpdatedUtc = SeedUtc },
-            new { Id = ClaraId, FirstName = "Clara", LastName = "Hopper", Email = "clara@example.com", CreatedUtc = SeedUtc, UpdatedUtc = SeedUtc });
+            new { Id = ClaraId, FirstName = "Clara", LastName = "Hopper", Email = "clara@example.com", CreatedUtc = SeedUtc, UpdatedUtc = SeedUtc },
+            new { Id = PedroId, FirstName = "Pedro", LastName = "Silva", Email = "pedro@example.com", CreatedUtc = SeedUtc, UpdatedUtc = SeedUtc });
 
         modelBuilder.Entity<Issue>().HasData(
             new

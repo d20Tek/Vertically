@@ -77,22 +77,4 @@ public partial class Issues
         assigneeId is null
             ? "Unassigned"
             : _users.FirstOrDefault(u => u.Id == assigneeId)?.FullName ?? "Unknown";
-
-    private static string StatusClass(IssueStatus status) => status switch
-    {
-        IssueStatus.Open => "is-open",
-        IssueStatus.InProgress => "is-inprogress",
-        IssueStatus.Resolved => "is-resolved",
-        IssueStatus.Closed => "is-closed",
-        _ => string.Empty,
-    };
-
-    private static string PriorityClass(IssuePriority priority) => priority switch
-    {
-        IssuePriority.Low => "is-low",
-        IssuePriority.Medium => "is-medium",
-        IssuePriority.High => "is-high",
-        IssuePriority.Critical => "is-critical",
-        _ => string.Empty,
-    };
 }

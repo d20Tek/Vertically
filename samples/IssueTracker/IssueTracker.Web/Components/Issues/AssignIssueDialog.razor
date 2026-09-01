@@ -1,0 +1,37 @@
+@using IssueTracker.Application.Features.Users
+@using IssueTracker.Web.Components.Pages
+
+@if (_visible)
+{
+    <div class="modal-backdrop" @onclick="Close">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Assign @Issue.Key</h2>
+                <button type="button" class="modal-close" @onclick="Close" aria-label="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (_error is not null)
+                {
+                    <div class="modal-message" role="alert">@_error</div>
+                }
+
+                <label class="modal-label" for="assign-user">Assignee</label>
+                <select id="assign-user" class="modal-control" @bind="_selectedAssigneeId" disabled="@_assigning">
+                    <option value="@Guid.Empty">Select assignee…</option>
+                    @foreach (var user in Users)
+                    {
+                        <option value="@user.Id">@user.FullName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" @onclick="Close" disabled="@_assigning">Cancel</button>
+                <button type="button" class="btn btn--primary" @onclick="AssignAsync" disabled="@(!CanAssign)">
+                    @(_assigning ? "Assigning…" : "Assign")
+                </button>
+            </div>
+        </div>
+    </div>
+}

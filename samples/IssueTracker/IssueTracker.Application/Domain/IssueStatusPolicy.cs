@@ -11,6 +11,7 @@ internal static class IssueStatusPolicy
             (IssueStatus.InProgress, IssueStatus.Resolved) => true,
             (IssueStatus.Resolved, IssueStatus.Closed) => true,
             (IssueStatus.Resolved, IssueStatus.InProgress) => true,
+            (_, IssueStatus.Open) => true,
             _ => false,
         };
 

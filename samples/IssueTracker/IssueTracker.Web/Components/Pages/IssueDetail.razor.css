@@ -1,0 +1,247 @@
+.detail-header {
+    margin-bottom: 1rem;
+}
+
+.detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem 0.35rem 0.65rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.detail-back::before {
+    content: "‹";
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: transform 0.15s;
+}
+
+.detail-back:hover {
+    color: #2563eb;
+    background: #f3f4f6;
+    border-color: #cbd5e1;
+}
+
+.detail-back:hover::before {
+    transform: translateX(-2px);
+}
+
+
+.detail-state {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.detail-message {
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #b91c1c;
+}
+
+.detail-card {
+    background: #f8f9fb;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    padding: 1.5rem 1.75rem;
+}
+
+.detail-notfound {
+    text-align: center;
+}
+
+.detail-notfound h1 {
+    margin-top: 0;
+}
+
+.detail-notfound p {
+    color: #6b7280;
+    margin-bottom: 1.25rem;
+}
+
+.detail-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.detail-key {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.detail-title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #111827;
+}
+
+.detail-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0 1.5rem;
+}
+
+.detail-badges .badge--status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-right: 0.7rem;
+}
+
+.detail-badges .badge--priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-right: 0.7rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1.5rem;
+    margin: 0 0 1.5rem;
+}
+
+.detail-grid dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7280;
+    align-self: center;
+}
+
+.detail-grid dd {
+    margin: 0;
+    color: #1f2933;
+}
+
+.detail-assignee {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.detail-description {
+    border-top: 1px solid #f0f1f3;
+    padding-top: 1.25rem;
+}
+
+.detail-description h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: #374151;
+}
+
+.detail-description p {
+    margin: 0;
+    color: #1f2933;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.detail-empty {
+    color: #9ca3af;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.badge--status.is-open {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge--status.is-inprogress {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.badge--status.is-resolved {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge--status.is-closed {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.badge--priority.is-low {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.badge--priority.is-medium {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.badge--priority.is-high {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.badge--priority.is-critical {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.9rem;
+    color: #1f2933;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.btn--small {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.btn--primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}

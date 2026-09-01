@@ -368,10 +368,11 @@ state instead of HTTP.
 3. [x] Add `appsettings.json` + `appsettings.Development.json` mirroring the API host's logging levels and the `{SharedDataDir}` connection string.
 4. [x] Add a `Result<T>` → UI translation helper (Web analog of `ResultHttpExtensions`) for success/validation/not-found/business-rule states.
 5. [x] Build the issues board page dispatching `GetIssues` with paging/sort/filter controls, rendering `PageOf<IssueResponse>`.
-6. [ ] Build the issue detail page dispatching `GetIssueById` with a not-found UI state.
-7. [ ] Build the create-issue form bound to `CreateIssue.Command` with pipeline validation surfaced inline.
-8. [ ] Build the assign action (assignee dropdown from `GetUsers` → `AssignIssue`) with business-rule failure messaging.
-9. [ ] Build the change-status action dispatching `ChangeIssueStatus` with illegal-transition messaging.
+6. [x] Build the issue detail page dispatching `GetIssueById` with a not-found UI state.
+7. [x] Build the create-issue form bound to `CreateIssue.Command` with pipeline validation surfaced inline.
+8. [x] Build the assign action (assignee dropdown from `GetUsers` → `AssignIssue`) with business-rule failure messaging.
+9. [x] Build the change-status action dispatching `ChangeIssueStatus` with illegal-transition messaging.
+9-B. [x] Add a `ChangeIssuePriority` Application feature and a Web priority-edit modal (pencil `EditButton` inside the priority badge) mirroring the change-status visuals/behavior.
 10. [ ] Add layout/nav and shared status/priority badge styling using the lookup reference data.
 11. [ ] Register `IssueTracker.Web` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
 12. [ ] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.

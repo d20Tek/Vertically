@@ -1,0 +1,36 @@
+@using IssueTracker.Application.Domain
+@using IssueTracker.Web.Components.Pages
+
+@if (_visible)
+{
+    <div class="modal-backdrop" @onclick="Close">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Change status · @Issue.Key</h2>
+                <button type="button" class="modal-close" @onclick="Close" aria-label="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (_error is not null)
+                {
+                    <div class="modal-message" role="alert">@_error</div>
+                }
+
+                <label class="modal-label" for="change-status">Status</label>
+                <select id="change-status" class="modal-control" @bind="_selectedStatus" disabled="@_saving">
+                    @foreach (var status in Enum.GetValues<IssueStatus>())
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" @onclick="Close" disabled="@_saving">Cancel</button>
+                <button type="button" class="btn btn--primary" @onclick="SaveAsync" disabled="@(!CanSave)">
+                    @(_saving ? "Saving…" : "Save")
+                </button>
+            </div>
+        </div>
+    </div>
+}

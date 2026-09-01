@@ -18,6 +18,24 @@
     border-radius: 999px;
 }
 
+.board-new {
+    margin-left: auto;
+    padding: 0.45rem 1rem;
+    background: #2563eb;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.board-new:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
 .board-card {
     border: 1px solid #e5e7eb;
     border-radius: 8px;

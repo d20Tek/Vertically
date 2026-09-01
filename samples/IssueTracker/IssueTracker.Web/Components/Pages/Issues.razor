@@ -10,6 +10,7 @@
     {
         <span class="board-count">@_page.TotalCount issue@(_page.TotalCount == 1 ? "" : "s")</span>
     }
+    <a class="board-new" href="/issues/new">New issue</a>
 </div>
 
 <IssueFilterBar Criteria="_criteria" Users="_users" OnChanged="ApplyFiltersAsync" />
@@ -46,8 +47,8 @@ else
                     <tr>
                         <td class="col-key"><a href="@($"/issues/{issue.Id}")">@issue.Key</a></td>
                         <td class="cell-title">@issue.Title</td>
-                        <td><span class="badge badge--status @StatusClass(issue.Status)">@issue.Status</span></td>
-                        <td><span class="badge badge--priority @PriorityClass(issue.Priority)">@issue.Priority</span></td>
+                        <td><span class="badge badge--status @IssueBadges.StatusClass(issue.Status)">@issue.Status</span></td>
+                        <td><span class="badge badge--priority @IssueBadges.PriorityClass(issue.Priority)">@issue.Priority</span></td>
                         <td>@AssigneeName(issue.AssigneeId)</td>
                         <td class="col-date">@issue.CreatedUtc.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)</td>
                     </tr>
