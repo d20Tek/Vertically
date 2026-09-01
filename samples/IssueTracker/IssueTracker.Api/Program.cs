@@ -12,7 +12,14 @@ builder.Services.AddOpenApi();
 
 // Shared, repo-relative SQLite database so every host reads/writes the same data.
 var connectionString = builder.Configuration.GetConnectionString("IssueTracker") ?? "Data Source={SharedDataDir}/issues.db";
-builder.Services.AddIssueTracker(connectionString);
+
+// Handler registration lives in the Application layer; behavior policy is a host decision.
+// This API surfaces failures as RFC 7807 problem details, so exception-to-result is enabled.
+builder.Services.AddIssueTrackerApplication(behaviors => behaviors
+    .AddExceptionToResult()
+    .AddLogging()
+    .AddValidation());
+builder.Services.AddIssueTrackerPersistence(connectionString);
 
 var app = builder.Build();
 

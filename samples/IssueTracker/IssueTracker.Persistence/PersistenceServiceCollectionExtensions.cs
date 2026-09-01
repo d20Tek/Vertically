@@ -1,5 +1,3 @@
-using D20Tek.Vertically.Registration;
-using IssueTracker.Application.Features.Issues;
 using IssueTracker.Application.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,15 +10,6 @@ namespace IssueTracker.Persistence;
 /// </summary>
 public static class PersistenceServiceCollectionExtensions
 {
-    /// <summary>
-    /// Registers the full Issue Tracker sample stack: the Vertically feature handlers/validators from
-    /// the Application assembly (<c>AddVertically</c>) and the SQLite-backed persistence
-    /// (<see cref="AddIssueTrackerPersistence"/>).
-    /// </summary>
-    public static IServiceCollection AddIssueTracker(this IServiceCollection services, string connectionString) =>
-        services.AddVertically(builder => builder.Handlers.RegisterFromAssembly(typeof(CreateIssue).Assembly))
-                .AddIssueTrackerPersistence(connectionString);
-
     /// <summary>
     /// Registers <see cref="IssueDbContext"/> against the given SQLite connection string and exposes
     /// it as <see cref="IIssueDbContext"/> for the Application layer's handlers. The connection string
