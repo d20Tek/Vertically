@@ -21,8 +21,8 @@
 .board-new {
     margin-left: auto;
     padding: 0.45rem 1rem;
-    background: #2563eb;
-    border: 1px solid #2563eb;
+    background: #1f2933;
+    border: 1px solid #1f2933;
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: 500;
@@ -32,8 +32,8 @@
 }
 
 .board-new:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: #2b3945;
+    border-color: #2b3945;
 }
 
 .board-card {

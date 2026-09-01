@@ -89,6 +89,11 @@
     color: #111827;
 }
 
+.detail-edit {
+    margin-left: auto;
+    align-self: center;
+}
+
 .detail-badges {
     display: flex;
     gap: 0.5rem;

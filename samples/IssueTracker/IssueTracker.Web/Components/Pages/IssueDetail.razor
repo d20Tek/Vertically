@@ -29,6 +29,7 @@ else
         <div class="detail-title">
             <span class="detail-key">@_issue!.Key</span>
             <h1>@_issue.Title</h1>
+            <a class="btn btn--small detail-edit" href="@($"/issues/{_issue.Id}/edit")">Edit</a>
         </div>
 
         <div class="detail-badges">

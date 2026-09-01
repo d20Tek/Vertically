@@ -78,6 +78,12 @@ public sealed class Issue
         return Touch();
     }
 
+    public Result<Unit> UpdateDescription(string? description)
+    {
+        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        return Touch();
+    }
+
     public Result<Unit> Reprioritize(IssuePriority priority)
     {
         Priority = priority;

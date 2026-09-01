@@ -373,7 +373,13 @@ state instead of HTTP.
 8. [x] Build the assign action (assignee dropdown from `GetUsers` → `AssignIssue`) with business-rule failure messaging.
 9. [x] Build the change-status action dispatching `ChangeIssueStatus` with illegal-transition messaging.
 9-B. [x] Add a `ChangeIssuePriority` Application feature and a Web priority-edit modal (pencil `EditButton` inside the priority badge) mirroring the change-status visuals/behavior.
-10. [ ] Add layout/nav and shared status/priority badge styling using the lookup reference data.
-11. [ ] Register `IssueTracker.Web` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
-12. [ ] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.
+9-C. [x] Add an `EditIssueDetails` slice to edit an issue's title and description:
+    - Domain: add an `UpdateDescription` behavior to `Issue` (reuse the existing `Rename` for title) that trims input, applies `Touch()`, and returns `Result<Unit>`.
+    - Application: create an `EditIssueDetails` feature (command, validator, handler) that loads the issue, applies `Rename(title)` + `UpdateDescription(description)`, and returns `IssueResponse`. Share the title/description validation rules and `MaxDescriptionLength` (4000) constant with `CreateIssue`.
+    - Web: add an inline edit affordance (pencil `EditButton`) on the `IssueDetail` page's title/description area that switches to an edit form (`InputText` + `InputTextArea`) dispatching `EditIssueDetails`, surfaces pipeline validation inline, and updates `_issue` in place on success.
+    - Build the solution and validate the edit workflow end-to-end.
+10. [x] Add layout/nav and shared status/priority badge styling using the lookup reference data.
+11. [x] Register `IssueTracker.Web` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
+12. [x] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.
+13. [ ] After the `IssueTracker.Cli` sample is complete, write a `samples/IssueTracker/README.md` documenting the shared-slice pattern across all three hosts (API, Web, CLI): how each host consumes the same Application/Persistence vertical slices, how to run each, and the shared `issues.db` story.
 
