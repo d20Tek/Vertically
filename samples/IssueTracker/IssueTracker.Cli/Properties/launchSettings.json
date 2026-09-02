@@ -14,7 +14,19 @@
     },
     "IssueTracker.Cli issue show": {
       "commandName": "Project",
-      "commandLineArgs": "issue show ISSUE-10"
+      "commandLineArgs": "issue show ISSUE-1"
+    },
+    "IssueTracker.Cli issue create": {
+      "commandName": "Project",
+      "commandLineArgs": "issue create --title \"Fix login timeout\" --key TEST-001"
+    },
+    "IssueTracker.Cli user help": {
+      "commandName": "Project",
+      "commandLineArgs": "user --help"
+    },
+    "IssueTracker.Cli user list": {
+      "commandName": "Project",
+      "commandLineArgs": "user list"
     }
   }
 }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.CommandLine;
 
-namespace IssueTracker.Cli.Commands;
+namespace IssueTracker.Cli.Commands.Issues;
 
 /// <summary>
 /// The <c>issue show</c> verb: dispatches <see cref="GetIssueByKey"/> for the supplied friendly key

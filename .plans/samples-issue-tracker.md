@@ -381,7 +381,7 @@ state instead of HTTP.
 10. [x] Add layout/nav and shared status/priority badge styling using the lookup reference data.
 11. [x] Register `IssueTracker.Web` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
 12. [x] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.
-13. [ ] After the `IssueTracker.Cli` sample is complete, write a `samples/IssueTracker/README.md` documenting the shared-slice pattern across all three hosts (API, Web, CLI): how each host consumes the same Application/Persistence vertical slices, how to run each, and the shared `issues.db` story.
+13. [x] After the `IssueTracker.Cli` sample is complete, write a `samples/IssueTracker/README.md` documenting the shared-slice pattern across all three hosts (API, Web, CLI): how each host consumes the same Application/Persistence vertical slices, how to run each, and the shared `issues.db` story.
 
 ---
 
@@ -516,13 +516,13 @@ maps `Result<T>` to console output + an exit code.
 5. [x] Add a small plain-text table/detail formatting helper (column widths, padding) for list/show output.
 6. [x] Build the `issue list` verb dispatching `GetIssues` with `--status/--priority/--assignee/--sort/--page/--size` options, rendering a paged plain-text table.
 7. [x] Add a `GetIssueByKey` lookup slice (plus a `FindIssueByKeyAsync` persistence helper) so verbs can resolve the friendly `ISSUE-{n}` key to an issue, and build the `issue show <key>` verb dispatching it with a not-found exit-code path.
-8. [ ] Build the `issue create` verb dispatching `CreateIssue` with pipeline validation surfaced to stderr (prints the new issue `Key` on success).
-9. [ ] Build the `issue assign <key> --user <userId>` verb: resolve the key via `GetIssueByKey`, then dispatch `AssignIssue` with business-rule failure messaging.
-10. [ ] Build the `issue status <key> --to <status>` verb: resolve the key, then dispatch `ChangeIssueStatus` with illegal-transition messaging.
-11. [ ] Build the `issue priority <key> --to <priority>` verb: resolve the key, then dispatch `ChangeIssuePriority`.
-12. [ ] Build the `issue edit <key> [--title] [--description]` verb: resolve the key, then dispatch `EditIssueDetails`.
-13. [ ] Build the `user list` verb dispatching `GetUsers`, rendering a plain-text table.
-14. [ ] Wire the `RootCommand` tree, resolving handlers from a per-invocation DI scope, and return the exit code from `InvokeAsync(args)`.
-15. [ ] Register `IssueTracker.Cli` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
-16. [ ] Build the solution and run the CLI verbs end-to-end against the shared `issues.db` to validate each workflow and exit codes.
-
+8. [x] Build the `issue create` verb dispatching `CreateIssue` with pipeline validation surfaced to stderr (prints the new issue `Key` on success).
+9. [x] Build the `issue assign <key> --user <userId>` verb: resolve the key via `GetIssueByKey`, then dispatch `AssignIssue` with business-rule failure messaging. *Shared `IssueMutationExecutor` resolve-then-dispatch helper introduced.*
+10. [x] Build the `issue status <key> --to <status>` verb: resolve the key, then dispatch `ChangeIssueStatus` with illegal-transition messaging.
+11. [x] Build the `issue priority <key> --to <priority>` verb: resolve the key, then dispatch `ChangeIssuePriority`.
+12. [x] Build the `issue edit <key> [--title] [--description]` verb: resolve the key, then dispatch `EditIssueDetails`. *Omitted options keep the issue's current value (resolved via `GetIssueByKey`); added a full-`IssueResponse` overload to `IssueMutationExecutor`.*
+13. [x] Build the `user list` verb dispatching `GetUsers`, rendering a plain-text table. *Shows the full `Id` (not truncated) since it's needed as the `issue assign --user` argument; added under a `user` command group.*
+13-B. [x] Build the `user create` verb dispatching `CreateUser`, being able to create a new user with `--first-name/--last-name/--email` options, and print the new user's `Id` on success. The application Feature needs to be implemented too. *Added the `CreateUser` Application slice (validator + unique-email conflict) and the CLI verb under the `user` command group.*
+14. [x] Wire the `RootCommand` tree, resolving handlers from a per-invocation DI scope, and return the exit code from `InvokeAsync(args)`. *`issue` and `user` command groups under the root; verified via `--help`.*
+15. [x] Register `IssueTracker.Cli` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
+16. [x] Build the solution and run the CLI verbs end-to-end against the shared `issues.db` to validate each workflow and exit codes. *Full-solution build succeeds; validated an end-to-end lifecycle (create with custom key → assign to a CLI-created user → status change → show) plus success/validation (2)/conflict (3)/not-found (4) exit codes.*

@@ -3,7 +3,7 @@ using IssueTracker.Application.Domain;
 using IssueTracker.Application.Features.Issues;
 using System.CommandLine;
 
-namespace IssueTracker.Cli.Commands;
+namespace IssueTracker.Cli.Commands.Issues;
 
 /// <summary>
 /// Owns the shared option definitions for the <c>issue list</c> verb and maps a parsed command line into
