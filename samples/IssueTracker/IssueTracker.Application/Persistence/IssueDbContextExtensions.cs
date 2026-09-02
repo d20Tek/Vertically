@@ -30,4 +30,24 @@ internal static class IssueDbContextExtensions
             ? Result<Issue>.Failure(Error.NotFound("issue.notFound", $"Issue '{issueId}' was not found."))
             : Result<Issue>.Success(issue);
     }
+
+    /// <summary>
+    /// Loads the <see cref="Issue"/> identified by its friendly <paramref name="key"/> (e.g. <c>ISSUE-1</c>),
+    /// returning a not-found failure when it does not exist. The lookup is case-insensitive. Pass
+    /// <paramref name="asNoTracking"/> for read-only queries so EF Core skips change tracking.
+    /// </summary>
+    internal static async Task<Result<Issue>> FindIssueByKeyAsync(
+        this IIssueDbContext dbContext,
+        string key,
+        bool asNoTracking = false,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedKey = (key ?? string.Empty).Trim().ToUpperInvariant();
+        var query = asNoTracking ? dbContext.Issues.AsNoTracking() : dbContext.Issues;
+        var issue = await query.FirstOrDefaultAsync(i => i.Key == normalizedKey, cancellationToken);
+
+        return issue is null
+            ? Result<Issue>.Failure(Error.NotFound("issue.notFound", $"Issue '{key}' was not found."))
+            : Result<Issue>.Success(issue);
+    }
 }

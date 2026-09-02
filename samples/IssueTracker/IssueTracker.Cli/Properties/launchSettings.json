@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "IssueTracker.Cli help": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    },
+    "IssueTracker.Cli issue help": {
+      "commandName": "Project",
+      "commandLineArgs": "issue --help"
+    },
+    "IssueTracker.Cli issue list": {
+      "commandName": "Project",
+      "commandLineArgs": "issue list"
+    },
+    "IssueTracker.Cli issue show": {
+      "commandName": "Project",
+      "commandLineArgs": "issue show ISSUE-10"
+    }
+  }
+}

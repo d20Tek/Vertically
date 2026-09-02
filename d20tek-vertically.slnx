@@ -9,6 +9,7 @@
   <Folder Name="/samples/IssueTracker/">
     <Project Path="samples/IssueTracker/IssueTracker.Api/IssueTracker.Api.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Application/IssueTracker.Application.csproj" />
+    <Project Path="samples/IssueTracker/IssueTracker.Cli/IssueTracker.Cli.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Persistence/IssueTracker.Persistence.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Web/IssueTracker.Web.csproj" />
   </Folder>

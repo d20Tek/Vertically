@@ -383,3 +383,146 @@ state instead of HTTP.
 12. [x] Build the solution and run the Web host to validate the board, paging, and each workflow end-to-end against the shared `issues.db`.
 13. [ ] After the `IssueTracker.Cli` sample is complete, write a `samples/IssueTracker/README.md` documenting the shared-slice pattern across all three hosts (API, Web, CLI): how each host consumes the same Application/Persistence vertical slices, how to run each, and the shared `issues.db` story.
 
+---
+
+# IssueTracker.Cli Sample — Creation Plan (System.CommandLine)
+
+> Status: planning only (no code yet)
+> Scope of this plan: the **`IssueTracker.Cli`** host (host #3). Reuses the existing
+> **Application** and **Persistence** libraries unchanged — no new slices, domain, or schema.
+
+## Goal
+Add a third host, **`IssueTracker.Cli`**, a console app that consumes the *same* vertical slices as the
+API and Web hosts through the shared Application/Persistence libraries — completing the "write slices once,
+host them anywhere" story with a command-line surface. The CLI performs the same core operations the Web
+app can (list/show/create/assign/change status/change priority/edit issues, list users) by dispatching the
+existing features (`GetIssues`, `GetIssueById`, `CreateIssue`, `AssignIssue`, `ChangeIssueStatus`,
+`ChangeIssuePriority`, `EditIssueDetails`, `GetUsers`) and translating `Result<T>` into console output +
+process exit codes rather than HTTP responses or UI state.
+
+## Why System.CommandLine (locked)
+- Purpose-built for the verb/subcommand + typed-option model this sample wants (`issue list`,
+  `issue assign <id> --user <id>`, `issue status <id> --to Resolved`), with automatic `--help`, argument
+  parsing/validation, and tab-completion — so the sample code stays focused on **slice dispatch**, not
+  argument plumbing.
+- Integrates cleanly with `Microsoft.Extensions.Hosting`/DI, so the composition root mirrors the API and
+  Web hosts almost line-for-line (`AddIssueTrackerApplication(behaviors => ...)` +
+  `AddIssueTrackerPersistence(...)`), reinforcing the shared-slice narrative.
+- Chosen over Spectre.Console deliberately: the sample should teach the **Vertically integration**, not a
+  second rich-console framework. Plain-text output keeps the focus there.
+- Use the **latest stable 2.0.x** (non-prerelease) so the sample compiles against the API developers get
+  when they install the package today, and won't break from prerelease churn. Pin the exact version in
+  `Directory.Packages.props`. Follows the redesigned stable API (actions/`SetAction`, `ParseResult`
+  binding) rather than the older beta `SetHandler` idiom. Revisit 3.0 only after it reaches GA.
+
+## Architecture & Dependency Direction
+```
+IssueTracker.Application  ← IssueTracker.Persistence  ← IssueTracker.Cli (console)
+```
+- **`IssueTracker.Cli`** references `IssueTracker.Application` (to dispatch slices) and
+  `IssueTracker.Persistence` (to call `AddIssueTrackerPersistence`). It composes behaviors itself via
+  `AddIssueTrackerApplication(behaviors => ...)`, exactly like the other hosts — behavior policy is a host
+  decision (chosen: exception-to-result + logging + validation, matching the API/Web hosts).
+- Points at the **same** shared `issues.db` (via `{SharedDataDir}` token + `SharedDataPath`).
+- Reuses `MigrateIssueTrackerAsync()` for the startup migrate/seed convenience (sample-only).
+
+## Composition Root (`Program.cs`)
+Mirror the API/Web host split registration, adapted for a console `IHost`:
+- Build a generic `Host` (`Host.CreateApplicationBuilder(args)`), register services:
+  - Shared connection string: `configuration.GetConnectionString("IssueTracker") ?? "Data Source={SharedDataDir}/issues.db"`.
+  - `services.AddIssueTrackerApplication(behaviors => behaviors.AddExceptionToResult().AddLogging().AddValidation());`
+  - `services.AddIssueTrackerPersistence(connectionString);`
+- `await host.Services.MigrateIssueTrackerAsync();` once on startup (sample convenience; same non-production NOTE).
+- Build the System.CommandLine `RootCommand` tree, resolving handlers from the host's `IServiceProvider`
+  per invocation (scoped) so each command dispatch gets a fresh `IIssueDbContext`.
+- `return await rootCommand.Parse(args).InvokeAsync();` so the parser drives execution and the process exit
+  code reflects success/failure.
+- Optional `appsettings.json` for the connection string + logging levels, consistent with the other hosts
+  (keep minimal for the CLI).
+
+## Command Surface (verbs → slices)
+All issue-identifying verbs take the friendly `<key>` (e.g. `ISSUE-1`) as their positional argument
+**instead of** the Guid `Id`, because the key is short, human-readable, stable, and shown in full in the
+list output (the Guid is truncated there and impractical to copy). The key is resolved to the aggregate
+via the `GetIssueByKey` slice (see below) before dispatching the underlying command. Verbs dispatch
+existing features; the only added Application code is the key-lookup slice.
+- `issue list` — dispatches `GetIssues` with options `--status`, `--priority`, `--assignee`,
+  `--sort <created|-created>`, `--page`, `--size`; renders a plain-text table of `PageOf<IssueResponse>`
+  with a paging footer (page X of Y, total). Shows the full `Key` per row (Guid truncated for readability).
+- `issue show <key>` — dispatches `GetIssueByKey`; prints a plain-text detail block; not-found → stderr
+  message + non-zero exit code.
+- `issue create --title <t> [--description <d>] [--priority <p>]` — dispatches `CreateIssue`; on success
+  prints the new issue `Key`; validation failures printed as a field/summary error list + non-zero exit.
+- `issue assign <key> --user <userId>` — resolves the key via `GetIssueByKey`, then dispatches
+  `AssignIssue`; business-rule failure (e.g. closed issue) → stderr + non-zero exit.
+- `issue status <key> --to <status>` — resolves the key, then dispatches `ChangeIssueStatus`;
+  illegal-transition failure → stderr + non-zero exit.
+- `issue priority <key> --to <priority>` — resolves the key, then dispatches `ChangeIssuePriority`.
+- `issue edit <key> [--title <t>] [--description <d>]` — resolves the key, then dispatches
+  `EditIssueDetails` (title/description).
+- `user list` — dispatches `GetUsers`; renders a plain-text table of `UserResponse`.
+
+## Result<T> → Console Translation
+The CLI analog of the API's `ResultHttpExtensions` / the Web's `ResultViewExtensions`: a small helper that
+maps `Result<T>` to console output + an exit code.
+- Success → write the value (table/detail/confirmation) to stdout, return exit code `0`.
+- `ValidationErrors` → write per-field messages to stderr, return a distinct non-zero code (e.g. `2`).
+- Not-found → write a friendly message to stderr, return a non-zero code (e.g. `4`).
+- Business-rule/conflict failure → write the error message to stderr, return a non-zero code (e.g. `3`).
+- Keep the mapping in one shared helper so every verb reports results consistently.
+
+## Shared CLI Concerns
+- Issue identity: every issue-identifying verb accepts the friendly `<key>` (e.g. `ISSUE-1`), never the
+  Guid `Id`. Keys are matched case-insensitively via the `GetIssueByKey` slice; a not-found key maps to a
+  friendly stderr message + non-zero exit code.
+- Enum parsing/binding: bind `--status`/`--priority`/`--to` options to the `IssueStatus`/`IssuePriority`
+  enums (System.CommandLine parses enum names), reusing the same enum-name intent as the API/Web.
+- Plain-text tables: a tiny column-formatting helper (compute max widths, pad columns) — no table library.
+- Short (first 8 chars) Guid display in list output for readability; full Guid shown in `show` detail.
+
+## Key Decisions (locked / proposed)
+- **System.CommandLine**, one-shot verb invocation per process, plain-text output (locked).
+- **Issue identity by friendly `Key`** (e.g. `ISSUE-1`), not the Guid `Id`, for every issue-identifying
+  verb (locked). Adds a single `GetIssueByKey` lookup slice (plus a `FindIssueByKeyAsync` persistence
+  helper); all other Application/Persistence code is reused unchanged.
+- **Reuse Application/Persistence otherwise unchanged** — no new domain, DTOs, or schema; the only
+  addition is the key-lookup slice/helper noted above.
+- **Split registration** via `AddIssueTrackerApplication(behaviors => ...)` + `AddIssueTrackerPersistence(...)`,
+  with the CLI owning its behavior policy (exception-to-result + logging + validation).
+- **Startup migrate/seed** via `MigrateIssueTrackerAsync()` (sample convenience) — same non-production NOTE.
+- **`Result<T>` → console** translation helper mapping outcomes to stdout/stderr + exit codes.
+
+## Open Defaults (change if desired)
+- **Exit code scheme:** distinct codes per failure type (chosen) vs a single non-zero code.
+- **Config:** `appsettings.json` (consistent with other hosts) vs pure default connection string.
+
+## Risks & Notes
+- **System.CommandLine API differs across major versions:** pin the exact stable 2.0.x version; the API
+  changed between the old beta (`SetHandler`) and the redesigned stable line, so keep the command wiring in
+  one place to make a future version bump (e.g. to 3.0 after GA) easy.
+- **Scoped `DbContext` per invocation:** create a DI scope per command dispatch so `IIssueDbContext` isn't
+  captured across the process lifetime (mirrors per-request/per-render scoping in the other hosts).
+- **Concurrency with API/Web sharing one `issues.db`:** SQLite WAL is generally fine for a sample;
+  simultaneous writes could surface transient locks — acceptable for a demo, worth a note.
+- `TreatWarningsAsErrors=true` + inherited doc-file settings — likely disable `GenerateDocumentationFile`
+  for the CLI project like the other samples.
+- Samples build in CI but are not unit-tested by this plan.
+
+## Steps
+1. [x] Add a pinned latest-stable `System.CommandLine` `PackageVersion` (2.0.x, non-prerelease) to `Directory.Packages.props`.
+2. [x] Create `samples/IssueTracker/IssueTracker.Cli` console project (net10.0, `OutputType=Exe`, doc-file disabled) referencing `IssueTracker.Application` + `IssueTracker.Persistence` and `System.CommandLine`.
+3. [x] Configure the composition root: build an `IHost`, resolve the shared connection string, call `AddIssueTrackerApplication(behaviors => ...)` + `AddIssueTrackerPersistence(...)`, and run `MigrateIssueTrackerAsync()` on startup.
+4. [x] Add a `Result<T>` → console translation helper (CLI analog of `ResultHttpExtensions`) mapping success/validation/not-found/business-rule outcomes to stdout/stderr + exit codes.
+5. [x] Add a small plain-text table/detail formatting helper (column widths, padding) for list/show output.
+6. [x] Build the `issue list` verb dispatching `GetIssues` with `--status/--priority/--assignee/--sort/--page/--size` options, rendering a paged plain-text table.
+7. [x] Add a `GetIssueByKey` lookup slice (plus a `FindIssueByKeyAsync` persistence helper) so verbs can resolve the friendly `ISSUE-{n}` key to an issue, and build the `issue show <key>` verb dispatching it with a not-found exit-code path.
+8. [ ] Build the `issue create` verb dispatching `CreateIssue` with pipeline validation surfaced to stderr (prints the new issue `Key` on success).
+9. [ ] Build the `issue assign <key> --user <userId>` verb: resolve the key via `GetIssueByKey`, then dispatch `AssignIssue` with business-rule failure messaging.
+10. [ ] Build the `issue status <key> --to <status>` verb: resolve the key, then dispatch `ChangeIssueStatus` with illegal-transition messaging.
+11. [ ] Build the `issue priority <key> --to <priority>` verb: resolve the key, then dispatch `ChangeIssuePriority`.
+12. [ ] Build the `issue edit <key> [--title] [--description]` verb: resolve the key, then dispatch `EditIssueDetails`.
+13. [ ] Build the `user list` verb dispatching `GetUsers`, rendering a plain-text table.
+14. [ ] Wire the `RootCommand` tree, resolving handlers from a per-invocation DI scope, and return the exit code from `InvokeAsync(args)`.
+15. [ ] Register `IssueTracker.Cli` in `d20tek-vertically.slnx` under `/samples/IssueTracker/`.
+16. [ ] Build the solution and run the CLI verbs end-to-end against the shared `issues.db` to validate each workflow and exit codes.
+
