@@ -2,7 +2,7 @@
 [![NuGet](https://img.shields.io/nuget/v/D20Tek.Vertically)](https://www.nuget.org/packages/D20Tek.Vertically)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-# D20Tek.Vertically
+# Vertically
 
 A modern, lightweight .NET library for building applications with vertical slice architecture. Vertically lets you write a feature once as a self-contained slice (its command or query, validator, and handler) and then run that same slice from any host: a Web API, a Blazor app, or a command-line tool. It provides typed command and query handlers, a composable pipeline of cross-cutting behaviors, first-class validation, and dependency-injection registration, so your application logic stays focused, testable, and free of host-specific concerns.
 
@@ -48,7 +48,7 @@ Vertically provides these building blocks so you can focus on the slice itself.
 
 This is not just another MediatR clone. There is no central dispatcher or `IMediator` abstraction sitting between your presentation code and your handlers. Instead, you inject the specific `ICommandHandler<TCommand, TResult>` or `IQueryHandler<TQuery, TResult>` directly into your presentation components and call it. Because the dependency is explicit and strongly typed, you get compile-time discovery of the exact handler being used, and stepping into a call in the debugger takes you straight to the handler rather than through a runtime dispatch and reflection layer. The cross-cutting pipeline is applied as decorators during dependency-injection registration, so behaviors wrap your handlers transparently without adding a dispatch call or an extra abstraction to your usage.
 
-D20Tek.Vertically provides:
+Vertically provides:
 
 - A typed command and query handler model
 - A composable pipeline of reusable cross-cutting behaviors

@@ -1,4 +1,4 @@
-# Introducing D20Tek.Vertically
+# Introducing Vertically (Vertical Slice Patterns for .NET)
 
 ## The problem: features shouldn't be scattered across layers
 
@@ -6,11 +6,11 @@ If you've built anything beyond a small .NET application, you've felt the fricti
 
 Vertical slice architecture is the well-known answer: organize code by feature rather than by technical layer. Each slice owns exactly one operation, from request to result, so everything that changes together lives together. The idea is simple, but doing it well in .NET usually means writing the same plumbing over and over: a way to dispatch a request to its handler, a consistent place for validation, uniform cross-cutting behavior, and clean dependency-injection registration for all of it.
 
-Many teams reach for a mediator library to fill that gap. That works, but it introduces a central dispatcher, runtime handler resolution, and an extra layer of indirection between your presentation code and the logic you actually care about. D20Tek.Vertically was built to give you the vertical-slice building blocks without that indirection.
+Many teams reach for a mediator library to fill that gap. That works, but it introduces a central dispatcher, runtime handler resolution, and an extra layer of indirection between your presentation code and the logic you actually care about. Vertically was built to give you the vertical-slice building blocks without that indirection.
 
 ## What this library does
 
-D20Tek.Vertically provides a small, focused set of abstractions for building applications as vertical slices. You model each operation as an `ICommand<TResult>` or `IQuery<TResult>`, implement its logic in an `ICommandHandler` or `IQueryHandler`, and optionally add an `IValidator<T>`. You can group a slice's request, validator, and handler into a single self-registering `IFeature`, then register everything through one `AddVertically` call with assembly scanning.
+Vertically provides a small, focused set of abstractions for building applications as vertical slices. You model each operation as an `ICommand<TResult>` or `IQuery<TResult>`, implement its logic in an `ICommandHandler` or `IQueryHandler`, and optionally add an `IValidator<T>`. You can group a slice's request, validator, and handler into a single self-registering `IFeature`, then register everything through one `AddVertically` call with assembly scanning.
 
 Handlers return a `Result<TResult>` rather than throwing for expected failures, so success, validation, and error paths stay explicit as values. Each host - a Web API, a Blazor app, a console tool - resolves the specific handler it needs and translates that result into its own idiom: an HTTP status code, a piece of UI state, or a process exit code. The same slice runs unchanged across all of them.
 
@@ -22,7 +22,7 @@ Mediator libraries popularized request/handler dispatch in .NET, and they served
 
 The most notable is the central dispatcher. To invoke a handler, you inject an `IMediator` (or similar) and send a request object; the mediator then resolves the matching handler at runtime, usually through reflection and a dictionary of registrations. This puts an abstraction between your presentation code and your logic. When you step into a call in the debugger, you land in the mediator's internals rather than on your handler, and "find the handler for this request" becomes a runtime lookup rather than a compile-time fact.
 
-D20Tek.Vertically takes a different approach: there is no central dispatcher. You inject the specific closed handler interface - for example `ICommandHandler<CreateOrder.Command, OrderResponse>` - directly into your component or endpoint and call `HandleAsync`. Because the dependency is explicit and strongly typed, the compiler tells you exactly which handler is in play, stepping into the call takes you straight to the handler, and there is no per-request reflection or type resolution on the hot path. The cross-cutting pipeline is still there, but it is applied as decorators during dependency-injection registration, so behaviors wrap your handler transparently without adding a dispatch call or an extra abstraction to your usage.
+Vertically takes a different approach: there is no central dispatcher. You inject the specific closed handler interface - for example `ICommandHandler<CreateOrder.Command, OrderResponse>` - directly into your component or endpoint and call `HandleAsync`. Because the dependency is explicit and strongly typed, the compiler tells you exactly which handler is in play, stepping into the call takes you straight to the handler, and there is no per-request reflection or type resolution on the hot path. The cross-cutting pipeline is still there, but it is applied as decorators during dependency-injection registration, so behaviors wrap your handler transparently without adding a dispatch call or an extra abstraction to your usage.
 
 ## Problems it solves
 
@@ -40,7 +40,7 @@ D20Tek.Vertically takes a different approach: there is no central dispatcher. Yo
 
 ## What it doesn't try to do
 
-D20Tek.Vertically is a set of abstractions and registration helpers, not a framework that owns your application. It does not provide a data-access layer, an HTTP stack, or a UI. It deliberately has no central dispatcher and no runtime message bus, so it is not a drop-in replacement for the in-process or out-of-process messaging features that some mediator libraries offer beyond simple request/handler dispatch.
+Vertically is a set of abstractions and registration helpers, not a framework that owns your application. It does not provide a data-access layer, an HTTP stack, or a UI. It deliberately has no central dispatcher and no runtime message bus, so it is not a drop-in replacement for the in-process or out-of-process messaging features that some mediator libraries offer beyond simple request/handler dispatch.
 
 It also does not translate the provider-agnostic sort and filter model to a specific data provider for you. Those types describe intent; an adapter in your own persistence layer (for example an EF Core translator) resolves fields and applies operators against your model. This keeps the core library free of provider dependencies and lets you control exactly how queries are executed.
 
