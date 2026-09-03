@@ -2,6 +2,7 @@
   <Folder Name="/.items/">
     <File Path=".github/workflows/ci-build.yml" />
     <File Path=".github/workflows/nuget-release.yml" />
+    <File Path="CHANGELOG.md" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
