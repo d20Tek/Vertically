@@ -1,0 +1,76 @@
+@page "/issues/{Id:guid}"
+@using System.Globalization
+
+<PageTitle>@(_issue is null ? "Issue" : _issue.Key)</PageTitle>
+
+<div class="detail-header">
+    <a class="detail-back" href="/issues">Back to issues</a>
+</div>
+
+@if (_view is null)
+{
+    <div class="detail-state"><em>Loading…</em></div>
+}
+else if (_view.Outcome == ResultViewOutcome.NotFound)
+{
+    <div class="detail-card detail-notfound">
+        <h1>Issue not found</h1>
+        <p>@_view.Message</p>
+        <a class="btn" href="/issues">Return to the board</a>
+    </div>
+}
+else if (_view.Outcome != ResultViewOutcome.Success)
+{
+    <div class="detail-message" role="alert">@_view.Message</div>
+}
+else
+{
+    <div class="detail-card">
+        <div class="detail-title">
+            <span class="detail-key">@_issue!.Key</span>
+            <h1>@_issue.Title</h1>
+            <a class="btn btn--small detail-edit" href="@($"/issues/{_issue.Id}/edit")">Edit</a>
+        </div>
+
+        <div class="detail-badges">
+            <span class="badge badge--status @IssueBadges.StatusClass(_issue.Status)">
+                <span>@_issue.Status</span>
+                <EditButton Title="Change status" OnClick="() => _statusDialog.Show()" />
+            </span>
+            <span class="badge badge--priority @IssueBadges.PriorityClass(_issue.Priority)">
+                <span>@_issue.Priority</span>
+                <EditButton Title="Change priority" OnClick="() => _priorityDialog.Show()" />
+            </span>
+        </div>
+
+        <dl class="detail-grid">
+            <dt>Assignee</dt>
+            <dd class="detail-assignee">
+                <span>@AssigneeName</span>
+                <button class="btn btn--small" @onclick="() => _assignDialog.Show()">Reassign</button>
+            </dd>
+
+            <dt>Created</dt>
+            <dd>@_issue.CreatedUtc.ToLocalTime().ToString("f", CultureInfo.CurrentCulture)</dd>
+
+            <dt>Updated</dt>
+            <dd>@_issue.UpdatedUtc.ToLocalTime().ToString("f", CultureInfo.CurrentCulture)</dd>
+        </dl>
+
+        <div class="detail-description">
+            <h2>Description</h2>
+            @if (string.IsNullOrWhiteSpace(_issue.Description))
+            {
+                <p class="detail-empty"><em>No description provided.</em></p>
+            }
+            else
+            {
+                <p>@_issue.Description</p>
+            }
+        </div>
+    </div>
+
+    <AssignIssueDialog @ref="_assignDialog" Issue="_issue" Users="_users" OnAssigned="OnAssigned" />
+    <ChangeStatusDialog @ref="_statusDialog" Issue="_issue" OnStatusChanged="OnStatusChanged" />
+    <ChangePriorityDialog @ref="_priorityDialog" Issue="_issue" OnPriorityChanged="OnPriorityChanged" />
+}

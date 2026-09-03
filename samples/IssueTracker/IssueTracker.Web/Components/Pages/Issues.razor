@@ -1,0 +1,66 @@
+@page "/"
+@page "/issues"
+@using System.Globalization
+
+<PageTitle>Issues</PageTitle>
+
+<div class="board-header">
+    <h1>Issues</h1>
+    @if (_page is not null && _view?.Outcome == ResultViewOutcome.Success)
+    {
+        <span class="board-count">@_page.TotalCount issue@(_page.TotalCount == 1 ? "" : "s")</span>
+    }
+    <a class="board-new" href="/issues/new">New issue</a>
+</div>
+
+<IssueFilterBar Criteria="_criteria" Users="_users" OnChanged="ApplyFiltersAsync" />
+
+@if (_view is null)
+{
+    <div class="board-state"><em>Loading…</em></div>
+}
+else if (_view.Outcome != ResultViewOutcome.Success)
+{
+    <div class="board-message" role="alert">@_view.Message</div>
+}
+else if (_page!.Items.Count == 0)
+{
+    <div class="board-state"><em>No issues match the current filters.</em></div>
+}
+else
+{
+    <div class="board-card">
+        <table class="board-table">
+            <thead>
+                <tr>
+                    <th class="col-key">Key</th>
+                    <th>Title</th>
+                    <th class="col-badge">Status</th>
+                    <th class="col-badge">Priority</th>
+                    <th>Assignee</th>
+                    <th class="col-date">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var issue in _page.Items)
+                {
+                    <tr>
+                        <td class="col-key"><a href="@($"/issues/{issue.Id}")">@issue.Key</a></td>
+                        <td class="cell-title">@issue.Title</td>
+                        <td><span class="badge badge--status @IssueBadges.StatusClass(issue.Status)">@issue.Status</span></td>
+                        <td><span class="badge badge--priority @IssueBadges.PriorityClass(issue.Priority)">@issue.Priority</span></td>
+                        <td>@AssigneeName(issue.AssigneeId)</td>
+                        <td class="col-date">@issue.CreatedUtc.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="board-pager">
+        <button class="btn" @onclick="PreviousPageAsync" disabled="@(!_page.HasPrevious)">‹ Previous</button>
+        <span class="board-pager__info">Page @_page.PageNumber of @Math.Max(_page.TotalPages, 1)</span>
+        <button class="btn" @onclick="NextPageAsync" disabled="@(!_page.HasNext)">Next ›</button>
+    </div>
+}
+

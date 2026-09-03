@@ -1,0 +1,201 @@
+.board-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.board-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.board-count {
+    font-size: 0.9rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+}
+
+.board-new {
+    margin-left: auto;
+    padding: 0.45rem 1rem;
+    background: #1f2933;
+    border: 1px solid #1f2933;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.board-new:hover {
+    background: #2b3945;
+    border-color: #2b3945;
+}
+
+.board-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.board-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.board-table thead th {
+    text-align: left;
+    padding: 0.65rem 0.9rem;
+    background: #d8dce3;
+    border-bottom: 1px solid #c3c9d2;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #4b5563;
+}
+
+.board-table tbody td {
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid #f0f1f3;
+    vertical-align: middle;
+}
+
+.board-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.board-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.col-key {
+    width: 6.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.col-key a {
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.col-key a:hover {
+    text-decoration: underline;
+}
+
+.cell-title {
+    font-weight: 500;
+    color: #111827;
+}
+
+.col-badge {
+    width: 7rem;
+}
+
+.col-date {
+    width: 10rem;
+    white-space: nowrap;
+    color: #6b7280;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.badge--status.is-open {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge--status.is-inprogress {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.badge--status.is-resolved {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge--status.is-closed {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.badge--priority.is-low {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.badge--priority.is-medium {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.badge--priority.is-high {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.badge--priority.is-critical {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.board-state {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.board-message {
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #b91c1c;
+}
+
+.board-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+.board-pager__info {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

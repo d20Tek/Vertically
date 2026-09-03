@@ -1,0 +1,59 @@
+@page "/issues/{Id:guid}/edit"
+@using Microsoft.AspNetCore.Components.Forms
+
+<PageTitle>@(_issue is null ? "Edit issue" : $"Edit {_issue.Key}")</PageTitle>
+
+<div class="form-header">
+    <a class="form-back" href="@BackUrl">Back to issue</a>
+    <h1>@(_issue is null ? "Edit issue" : $"Edit {_issue.Key}")</h1>
+</div>
+
+@if (_view is null)
+{
+    <div class="form-state"><em>Loading…</em></div>
+}
+else if (_view.Outcome == ResultViewOutcome.NotFound)
+{
+    <div class="form-card form-notfound">
+        <h2>Issue not found</h2>
+        <p>@_view.Message</p>
+        <a class="btn" href="/issues">Return to the board</a>
+    </div>
+}
+else if (_view.Outcome != ResultViewOutcome.Success)
+{
+    <div class="form-message" role="alert">@_view.Message</div>
+}
+else
+{
+    <div class="form-card">
+        <EditForm EditContext="_editContext" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+
+            @if (_errorMessage is not null)
+            {
+                <div class="form-message" role="alert">@_errorMessage</div>
+            }
+
+            <div class="form-field">
+                <label for="edit-title">Title</label>
+                <InputText id="edit-title" class="form-control" @bind-Value="_model.Title" placeholder="Short summary of the issue" />
+                <ValidationMessage For="() => _model.Title" />
+            </div>
+
+            <div class="form-field">
+                <label for="edit-description">Description</label>
+                <InputTextArea id="edit-description" class="form-control form-control--area" rows="6" @bind-Value="_model.Description"
+                               placeholder="Optional details, steps to reproduce, context…" />
+                <ValidationMessage For="() => _model.Description" />
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn" @onclick="Cancel" disabled="@_submitting">Cancel</button>
+                <button type="submit" class="btn btn--primary" disabled="@_submitting">
+                    @(_submitting ? "Saving…" : "Save changes")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}

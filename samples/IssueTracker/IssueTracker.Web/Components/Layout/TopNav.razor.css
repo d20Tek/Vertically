@@ -1,0 +1,124 @@
+.topnav {
+    background: #1f2933;
+    color: #f8f9fb;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+.topnav-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 3.5rem;
+}
+
+.topnav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.topnav-brand:visited {
+    color: #fff;
+}
+
+.topnav-logo {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    font-size: 1.25rem;
+}
+
+.topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.topnav-links ::deep .topnav-link {
+    padding: 0.4rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.topnav-links ::deep .topnav-link:visited {
+    color: #cbd5e1;
+}
+
+.topnav-links ::deep .topnav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.topnav-links ::deep .topnav-link.active,
+.topnav-links ::deep .topnav-link.active:visited {
+    background: #3b4a5a;
+    color: #fff;
+}
+
+.topnav-toggle {
+    display: none;
+    margin-left: auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.28rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.5rem;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.topnav-toggle-bar {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: #f8f9fb;
+    border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+    .topnav-toggle {
+        display: flex;
+    }
+
+    .topnav-links {
+        position: absolute;
+        top: 3.5rem;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+        margin-left: 0;
+        padding: 0.5rem 1rem 0.75rem;
+        background: #1f2933;
+        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
+        display: none;
+    }
+
+    .topnav-links.is-open {
+        display: flex;
+    }
+
+    .topnav-links ::deep .topnav-link {
+        padding: 0.6rem 0.85rem;
+    }
+}

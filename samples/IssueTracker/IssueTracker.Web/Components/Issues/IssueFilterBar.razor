@@ -1,0 +1,56 @@
+@using D20Tek.Vertically.Queries.Pagination
+@using IssueTracker.Application.Domain
+@using IssueTracker.Web.Components.Pages
+
+<div class="board-filters">
+    <div class="filter">
+        <label for="filter-status">Status</label>
+        <select id="filter-status" @bind="Criteria.Status" @bind:after="NotifyChangedAsync">
+            <option value="">All</option>
+            @foreach (var status in Enum.GetValues<IssueStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <div class="filter">
+        <label for="filter-priority">Priority</label>
+        <select id="filter-priority" @bind="Criteria.Priority" @bind:after="NotifyChangedAsync">
+            <option value="">All</option>
+            @foreach (var priority in Enum.GetValues<IssuePriority>())
+            {
+                <option value="@priority">@priority</option>
+            }
+        </select>
+    </div>
+
+    <div class="filter">
+        <label for="filter-assignee">Assignee</label>
+        <select id="filter-assignee" @bind="Criteria.Assignee" @bind:after="NotifyChangedAsync">
+            <option value="">All</option>
+            <option value="@IssueFilterCriteria.UnassignedToken">Unassigned</option>
+            @foreach (var user in Users)
+            {
+                <option value="@user.Id">@user.FullName</option>
+            }
+        </select>
+    </div>
+
+    <div class="filter">
+        <label for="filter-sort">Sort by date</label>
+        <select id="filter-sort" @bind="Criteria.SortDirection" @bind:after="NotifyChangedAsync">
+            <option value="@SortDirection.Descending">Newest first</option>
+            <option value="@SortDirection.Ascending">Oldest first</option>
+        </select>
+    </div>
+
+    <div class="filter filter--compact">
+        <label for="filter-size">Page size</label>
+        <select id="filter-size" @bind="Criteria.PageSize" @bind:after="NotifyChangedAsync">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+        </select>
+    </div>
+</div>
