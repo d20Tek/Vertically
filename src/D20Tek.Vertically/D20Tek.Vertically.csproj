@@ -3,12 +3,37 @@
     <TargetFramework></TargetFramework>
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
   </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>D20Tek.Vertically</PackageId>
+    <Authors>d20Tek</Authors>
+    <Company>d20Tek</Company>
+    <Product>D20Tek Vertically</Product>
+    <Copyright>Copyright (c) 2026 d20Tek</Copyright>
+    <Description>Vertically is the vertical-slice engine for modern .NET apps. Write a slice once and run it in WebAPI, CLI, or Blazor. Commands, queries, validation, pipeline behaviors, DI, and AOT-safe with source generation [coming soon].</Description>
+    <PackageTags>vertical-slice;cqrs;mediator;handlers;pipeline;validation;dotnet</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>package-icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/d20Tek/Vertically</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/d20Tek/Vertically</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="D20Tek.Functional" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="D20Tek.Vertically.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\package-icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 </Project>
