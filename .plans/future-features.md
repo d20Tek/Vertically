@@ -219,3 +219,61 @@ Two complementary ways to consume the origin data:
 - Two-phase discovery: `src/D20Tek.Vertically/Registration/HandlerRegistrationBuilder.cs`
 - Builder materialization: `src/D20Tek.Vertically/Registration/VerticallyBuilder.cs` (`Build`)
 
+---
+
+## Idea Parking Lot
+
+Unstructured list of candidate features to investigate later. Each will be expanded into a full entry
+(Status / Motivation / Proposed surface / Design notes / Source references) when picked up.
+
+### Pipeline / cross-cutting behaviors
+- Caching behavior for queries (`ICacheableQuery` marker + key/TTL, backed by `IMemoryCache`/`IDistributedCache`).
+- Retry / transient-fault behavior (configurable count, backoff, retriable `ErrorType`s/exceptions).
+- Idempotency behavior for commands (idempotency key short-circuits duplicate submissions).
+- Transaction / Unit-of-Work behavior (`ITransactionalCommand` marker; commit on success, roll back on failure).
+- Authorization behavior (`IAuthorizer<TRequest>` checks short-circuit with Forbidden/Unauthorized result).
+- Metrics / diagnostics behavior (`System.Diagnostics.Metrics` counters + `ActivitySource`/OpenTelemetry spans).
+- Event Dispatch Behavior (deferred, in-process event dispatch): after a handler succeeds, drain the events
+  raised during the slice and publish them via `INotificationPublisher`. In-memory staging only - if the
+  process crashes after commit but before publish, events are lost (no durability guarantee). This is deferred
+  in-process dispatch, NOT the Outbox pattern; it shares the event-collection front end and is the growth path
+  toward a persisted transactional Outbox (see below). Formerly described as the post-processing/notification
+  behavior.
+- Post-processing behavior (`IPostProcessor<TRequest, TResult>` hooks after success, for concerns other than
+  event dispatch such as cache invalidation or audit).
+
+### Domain / result helpers
+- Domain event dispatch (`IDomainEvent` + `IDomainEventHandler<T>`, collected and dispatched after the slice).
+- Notification dispatcher (`INotificationPublisher` + `INotificationHandler<TNotification>` for 1:N in-process
+  domain-event fan-out across aggregates/slices). Distinct from command/query direct injection, which stays 1:1;
+  notifications are 1:N and fire-and-forget, so a thin publisher is the right tool without reintroducing a
+  request/response dispatcher. Command handlers can inject `INotificationPublisher` and publish inline directly
+  (best for simpler domains, no behavior needed); this also gives a growth path to raising events on aggregates
+  and letting the Event Dispatch Behavior drain and publish them after a successful result - both paths use the
+  same publisher so adoption is additive. Pairs with domain event dispatch (contracts) and the Event Dispatch
+  Behavior (trigger). Design notes: in-process first with a transport-agnostic interface, sequential vs. parallel
+  dispatch, error aggregation, and publish inside vs. after transaction.
+- Transactional Outbox (persisted): stage domain events into an outbox table within the same DB transaction as
+  the aggregate change, then a background relay reads and publishes them with retries and idempotency. Provides
+  at-least-once delivery that survives a crash after commit - the durability guarantee the in-memory Event
+  Dispatch Behavior does not offer. Shares the event-collection front end with that behavior, so the in-memory
+  path is a stepping stone: swap the "drain and publish immediately" tail for "persist in the transaction +
+  relay." Design notes: outbox schema/EF Core integration, relay hosting (BackgroundService), dedup/idempotency
+  keys, ordering, and poison-message handling; likely a companion package alongside the EF Core translator.
+- `D20Tek.Vertically.AspNetCore` companion package (promote sample `ResultHttpExtensions` / RFC 7807 mapping).
+- Minimal API endpoint mapping helpers (`MapCommand<...>()` / `MapQuery<...>()` wiring to injected handlers).
+
+### Query / pagination helpers
+- In-memory `IEnumerable`/`IQueryable` translator (provider-neutral counterpart to the EF Core translator).
+- Cursor encoding helpers (keyset cursor codec for `CursorPagedRequest`/`CursorPageOf<T>`).
+- `PageOf<T>` async projection (`MapAsync(...)` companion to `Map`).
+
+### Testing & tooling
+- `D20Tek.Vertically.Testing` package (handler test harness through the real pipeline + result assertion helpers).
+- Registration validation / analyzers (flag missing handlers, ambiguous result pairings, orphan validators).
+- Source-generated registration (AOT/trim-safe alternative to reflection-based `RegisterFromAssembly`).
+
+### Cross-cutting configuration
+- Per-request behavior filtering by marker/attribute (behaviors opt in/out selectively).
+- Streaming queries (`IStreamQuery<TResult>` + handler returning `IAsyncEnumerable<TResult>`).
+
