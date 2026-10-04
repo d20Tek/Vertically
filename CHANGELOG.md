@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated package dependencies to their latest versions.
+- `samples/IssueTracker/IssueTracker.Api` now maps `Result<T>` to HTTP responses using the
+  `D20Tek.Functional.AspNetCore` package's Minimal API extensions instead of a custom `ResultHttpExtensions` helper.
 
 ## [0.9.3] - 2026-09-11
 
