@@ -11,6 +11,10 @@ See the [API Reference hub](api-reference.md) for the other reference documents.
 - [IHandlerRegistrationBuilder](#ihandlerregistrationbuilder)
 - [IBehaviorRegistrationBuilder](#ibehaviorregistrationbuilder)
 - [IHandlerBehaviorScope](#ihandlerbehaviorscope)
+- [RegistrationSource](#registrationsource)
+- [HandlerRegistrationInfo](#handlerregistrationinfo)
+- [ValidatorRegistrationInfo](#validatorregistrationinfo)
+- [VerticallyDiagnostics](#verticallydiagnostics)
 
 ## DI Registration Methods
 
@@ -31,6 +35,8 @@ The root fluent builder passed to the `AddVertically` callback. It exposes group
 | `Behaviors` | `IBehaviorRegistrationBuilder` | Global (all-handler) behavior configuration, applied in registration order. |
 | `ForCommand<TCommand>()` | `IHandlerBehaviorScope` | Opens a per-handler behavior scope for the given command request type. Behaviors added here sit closest to the handler (innermost) by default. |
 | `ForQuery<TQuery>()` | `IHandlerBehaviorScope` | Opens a per-handler behavior scope for the given query request type. Behaviors added here sit closest to the handler (innermost) by default. |
+| `HandlerRegistrations` | `IReadOnlyList<HandlerRegistrationInfo>` | The handler registrations collected so far (post-dedupe; one entry per distinct service type), including the `RegistrationSource` that produced each one. Useful for diagnostics and tooling that need to answer "how did this handler get registered?" |
+| `ValidatorRegistrations` | `IReadOnlyList<ValidatorRegistrationInfo>` | The validator registrations collected so far (post-dedupe), including the `RegistrationSource` that produced each one. |
 
 ## IHandlerRegistrationBuilder
 
@@ -69,3 +75,46 @@ Fluent scope for configuring behaviors on a single handler, opened via `ForComma
 | `AddValidation()` | Adds the built-in validation behavior for this handler. |
 | `AtOutermost()` | Places the next added behavior outside all existing behaviors for this handler (runs first on the way in). |
 | `InsertBefore(Type anchorOpenGenericBehaviorType)` | Places the next added behavior immediately outside the given anchor behavior in this handler's pipeline. |
+
+## RegistrationSource
+
+`enum RegistrationSource` identifies how a handler or validator registration was discovered or added, so tooling and diagnostics can answer "how did this registration get here?"
+
+| Value | Description |
+|---|---|
+| `Feature` | Registered via an `IFeature`'s `Register` call (phase 1 discovery). |
+| `Scan` | Discovered by the loose assembly scan (phase 2 discovery). |
+| `Manual` | Registered explicitly via `IHandlerRegistrationBuilder` (e.g. `AddCommandHandler<THandler>()`, `AddQueryHandler<THandler>()`, `AddValidator<TValidator>()`). |
+| `Generated` | Reserved for a future source-generated registration path. |
+
+## HandlerRegistrationInfo
+
+`sealed record HandlerRegistrationInfo(Type ServiceType, Type ImplementationType, Type RequestType, Type ResultType, bool IsCommand, RegistrationSource Source)` is a read-only snapshot of a discovered handler registration, exposed via `IVerticallyBuilder.HandlerRegistrations`.
+
+| Member | Type | Description |
+|---|---|---|
+| `ServiceType` | `Type` | The closed handler service interface (e.g. `ICommandHandler<TCommand, TResult>`). |
+| `ImplementationType` | `Type` | The concrete handler implementation type. |
+| `RequestType` | `Type` | The command or query request type. |
+| `ResultType` | `Type` | The handler's result type. |
+| `IsCommand` | `bool` | `true` for a command handler; `false` for a query handler. |
+| `Source` | `RegistrationSource` | How this registration was discovered/added. |
+
+## ValidatorRegistrationInfo
+
+`sealed record ValidatorRegistrationInfo(Type ServiceType, Type ImplementationType, RegistrationSource Source)` is a read-only snapshot of a discovered validator registration, exposed via `IVerticallyBuilder.ValidatorRegistrations`.
+
+| Member | Type | Description |
+|---|---|---|
+| `ServiceType` | `Type` | The closed validator service interface (e.g. `IValidator<TRequest>`). |
+| `ImplementationType` | `Type` | The concrete validator implementation type. |
+| `Source` | `RegistrationSource` | How this registration was discovered/added. |
+
+## VerticallyDiagnostics
+
+`static class VerticallyDiagnostics` provides on-demand debugging helpers that render the handler/validator registrations collected by an `IVerticallyBuilder`, including their `RegistrationSource`. Intended for ad-hoc diagnostics (console/log output), not as an always-on feature.
+
+| Method | Return Type | Description |
+|---|---|---|
+| `PrintRegistrations(IVerticallyBuilder builder)` | `string` | Builds a formatted table of all collected handler and validator registrations, including the request/command type, the handler/validator implementation, and the `RegistrationSource` that produced each entry. Throws `ArgumentNullException` when `builder` is `null`. |
+| `PrintDuplicateRegistrations(IVerticallyBuilder builder)` | `string` | Scans the collected handler and validator registration attempts for overlap: the same service type registered more than once (e.g. once by a feature and again by the loose assembly scan). Throws `ArgumentNullException` when `builder` is `null`, and `ArgumentException` when `builder` is not the internal `VerticallyBuilder` implementation. |

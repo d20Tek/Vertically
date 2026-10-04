@@ -13,7 +13,7 @@ internal static class HandlerDecoratorComposer
     {
         var services = builder.Services;
 
-        foreach (var registration in builder.HandlerRegistrations)
+        foreach (var registration in builder.InternalHandlerRegistrations)
         {
             services.TryAddScoped(registration.ImplementationType);
 

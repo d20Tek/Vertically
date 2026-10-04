@@ -30,4 +30,17 @@ public interface IVerticallyBuilder
     /// </summary>
     /// <typeparam name="TQuery">The query request type.</typeparam>
     IHandlerBehaviorScope ForQuery<TQuery>();
+
+    /// <summary>
+    /// The handler registrations collected so far (post-dedupe; one entry per distinct service
+    /// type), including the <see cref="RegistrationSource"/> that produced each one. Useful for
+    /// diagnostics and tooling that need to answer "how did this handler get registered?".
+    /// </summary>
+    IReadOnlyList<HandlerRegistrationInfo> HandlerRegistrations { get; }
+
+    /// <summary>
+    /// The validator registrations collected so far (post-dedupe), including the
+    /// <see cref="RegistrationSource"/> that produced each one.
+    /// </summary>
+    IReadOnlyList<ValidatorRegistrationInfo> ValidatorRegistrations { get; }
 }

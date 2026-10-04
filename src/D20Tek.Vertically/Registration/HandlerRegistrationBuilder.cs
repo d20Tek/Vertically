@@ -3,6 +3,7 @@ namespace D20Tek.Vertically.Registration;
 internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IHandlerRegistrationBuilder
 {
     private readonly VerticallyBuilder _builder = builder;
+    private RegistrationSource _currentSource = RegistrationSource.Manual;
 
     public IHandlerRegistrationBuilder AddCommandHandler<THandler>() where THandler : class =>
         AddHandler(typeof(THandler), expectedCommand: true);
@@ -12,15 +13,17 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
 
     public IHandlerRegistrationBuilder AddValidator<TValidator>() where TValidator : class
     {
-        var registrations = HandlerTypeInspector.GetValidatorRegistrations(typeof(TValidator)).ToArray();
+        var registrations = HandlerTypeInspector
+            .GetValidatorRegistrations(typeof(TValidator), _currentSource)
+            .ToArray();
         if (registrations.Length == 0)
         {
             throw new InvalidOperationException($"Type '{typeof(TValidator)}' does not implement IValidator<T> or IAsyncValidator<T>.");
         }
 
-        foreach (var (serviceType, implementationType) in registrations)
+        foreach (var registration in registrations)
         {
-            _builder.AddValidatorRegistration(serviceType, implementationType);
+            _builder.AddValidatorRegistration(registration);
         }
 
         return this;
@@ -33,10 +36,19 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
         // Phase 1: features first — let each feature register itself.
         var featureTypes = types.Where(t => typeof(IFeature).IsAssignableFrom(t)).ToArray();
 
-        foreach (var featureType in featureTypes)
+        var previousSource = _currentSource;
+        _currentSource = RegistrationSource.Feature;
+        try
         {
-            var feature = (IFeature)Activator.CreateInstance(featureType)!;
-            feature.Register(_builder);
+            foreach (var featureType in featureTypes)
+            {
+                var feature = (IFeature)Activator.CreateInstance(featureType)!;
+                feature.Register(_builder);
+            }
+        }
+        finally
+        {
+            _currentSource = previousSource;
         }
 
         // Phase 2: loose scan — register remaining handlers/validators, skipping feature-owned types.
@@ -45,14 +57,14 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
         {
             if (featureSet.Contains(type) || HandlerTypeInspector.IsNestedInside(type, featureSet)) continue;
 
-            foreach (var registration in HandlerTypeInspector.GetHandlerRegistrations(type))
+            foreach (var registration in HandlerTypeInspector.GetHandlerRegistrations(type, RegistrationSource.Scan))
             {
                 _builder.AddHandlerRegistration(registration);
             }
 
-            foreach (var (serviceType, implementationType) in HandlerTypeInspector.GetValidatorRegistrations(type))
+            foreach (var registration in HandlerTypeInspector.GetValidatorRegistrations(type, RegistrationSource.Scan))
             {
-                _builder.AddValidatorRegistration(serviceType, implementationType);
+                _builder.AddValidatorRegistration(registration);
             }
         }
 
@@ -71,7 +83,7 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
 
     private HandlerRegistrationBuilder AddHandler(Type implementationType, bool expectedCommand)
     {
-        var registrations = HandlerTypeInspector.GetHandlerRegistrations(implementationType)
+        var registrations = HandlerTypeInspector.GetHandlerRegistrations(implementationType, _currentSource)
             .Where(r => r.IsCommand == expectedCommand).ToArray();
 
         if (registrations.Length == 0)
