@@ -1,3 +1,4 @@
+using D20Tek.Functional.AspNetCore.MinimalApi;
 using D20Tek.Vertically;
 using IssueTracker.Application.Features.Users;
 
@@ -17,6 +18,6 @@ internal static class UserEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new GetUsers.Query(), cancellationToken);
-        return result.ToOk();
+        return result.ToApiResult();
     }
 }

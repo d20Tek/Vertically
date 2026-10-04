@@ -1,13 +1,13 @@
+using D20Tek.Functional.AspNetCore.MinimalApi;
 using D20Tek.Vertically;
 using D20Tek.Vertically.Queries.Pagination;
-using IssueTracker.Application.Domain;
 using IssueTracker.Application.Features.Issues;
 
 namespace IssueTracker.Api;
 
 /// <summary>
 /// Maps the issue vertical slices to minimal-API endpoints, resolving each slice's handler from DI
-/// and translating its <c>Result&lt;T&gt;</c> to HTTP via <see cref="ResultHttpExtensions"/>.
+/// and translating its <c>Result&lt;T&gt;</c> to HTTP via <see cref="ResultExtensions"/>.
 /// </summary>
 internal static class IssueEndpoints
 {
@@ -31,7 +31,9 @@ internal static class IssueEndpoints
     {
         var command = new CreateIssue.Command(request.Title, request.Description, request.Priority, request.Key);
         var result = await handler.HandleAsync(command, cancellationToken);
-        return result.ToCreated(issue => $"/issues/{issue.Id}");
+        return result.Match(
+            issue => TypedResults.Created($"/issues/{issue.Id}", issue),
+            Results.Extensions.Problem);
     }
 
     private static async Task<IResult> GetByIdAsync(
@@ -40,7 +42,7 @@ internal static class IssueEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new GetIssueById.Query(id), cancellationToken);
-        return result.ToOk();
+        return result.ToApiResult();
     }
 
     private static async Task<IResult> GetPageAsync(
@@ -50,7 +52,7 @@ internal static class IssueEndpoints
     {
         var query = IssueQueryBinder.Bind(httpRequest.Query);
         var result = await handler.HandleAsync(query, cancellationToken);
-        return result.ToOk();
+        return result.ToApiResult();
     }
 
     private static async Task<IResult> AssignAsync(
@@ -60,7 +62,7 @@ internal static class IssueEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new AssignIssue.Command(id, request.AssigneeId), cancellationToken);
-        return result.ToOk();
+        return result.ToApiResult();
     }
 
     private static async Task<IResult> ChangeStatusAsync(
@@ -70,6 +72,6 @@ internal static class IssueEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new ChangeIssueStatus.Command(id, request.Status), cancellationToken);
-        return result.ToOk();
+        return result.ToApiResult();
     }
 }
