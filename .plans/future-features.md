@@ -159,11 +159,15 @@ The reference implementation is the source of truth for the algorithm. Key mecha
 
 ---
 
-## 2. Registration Origin Tracking + Diagnostics for `HandlerRegistration`
+## 2. Registration Origin Tracking + Diagnostics for `HandlerRegistration` [Done]
 
 ### Status
-Proposed. No implementation yet. Motivated by the observation that once registrations collapse into
-`ServiceDescriptor`s, there is no way to tell *how* a handler/validator got registered.
+Implemented. `RegistrationSource` (Feature/Scan/Manual/Generated) is now carried on
+`HandlerRegistration` and `ValidatorRegistration`, surfaced publicly via
+`IVerticallyBuilder.HandlerRegistrations` / `ValidatorRegistrations`
+(`HandlerRegistrationInfo` / `ValidatorRegistrationInfo`), and consumable via the
+`VerticallyDiagnostics.PrintRegistrations(...)` and `VerticallyDiagnostics.PrintDuplicateRegistrations(...)`
+debug helpers.
 
 ### Motivation
 Today `RegisterFromAssembly` discovers registrations through two distinct paths (feature self-registration
@@ -203,16 +207,16 @@ Two complementary ways to consume the origin data:
 2. **Diagnostic dump method** — a helper (e.g., `builder.DumpRegistrations()` or a
    `VerticallyDiagnostics.PrintRegistrations(...)`) that writes a formatted table to the console/logger
    for debug purposes: request type, handler impl, command/query, and the `RegistrationSource`. Intended
-   for on-demand debugging, not always-on.
+   for on-demand debugging, not always-on. [Implment both options]
 
 ### Design notes / open questions
 - `ServiceDescriptor` has no metadata slot, so origin must be captured at registration time on the
   Vertically-side records (before `Build()` materializes descriptors) and surfaced from the builder, not
-  the `ServiceCollection`.
+  the `ServiceCollection`. [Makes sense; the builder is the right place to hold this metadata.]
 - Decide whether the diagnostics live in the core package or a separate `*.Diagnostics` companion to keep
-  the core surface lean.
-- Consider whether validators need the same origin tracking as handlers (likely yes, for symmetry).
-- Consider a duplicate/overlap report (feature + scan registering the same type) as a natural extension.
+  the core surface lean. [No, keep it in Core; it's just a debug helper.]
+- Consider whether validators need the same origin tracking as handlers (likely yes, for symmetry). [Yes!]
+- Consider a duplicate/overlap report (feature + scan registering the same type) as a natural extension. [Yes. Add a duplicate check method (similar to the diagnostic dump method).]
 
 ### Source references
 - Registration record: `src/D20Tek.Vertically/Registration/HandlerRegistration.cs`
@@ -260,7 +264,6 @@ Unstructured list of candidate features to investigate later. Each will be expan
   path is a stepping stone: swap the "drain and publish immediately" tail for "persist in the transaction +
   relay." Design notes: outbox schema/EF Core integration, relay hosting (BackgroundService), dedup/idempotency
   keys, ordering, and poison-message handling; likely a companion package alongside the EF Core translator.
-- `D20Tek.Vertically.AspNetCore` companion package (promote sample `ResultHttpExtensions` / RFC 7807 mapping).
 - Minimal API endpoint mapping helpers (`MapCommand<...>()` / `MapQuery<...>()` wiring to injected handlers).
 
 ### Query / pagination helpers

@@ -6,7 +6,9 @@ namespace D20Tek.Vertically.Registration;
 /// </summary>
 internal static class HandlerTypeInspector
 {
-    public static IEnumerable<HandlerRegistration> GetHandlerRegistrations(Type implementationType)
+    public static IEnumerable<HandlerRegistration> GetHandlerRegistrations(
+        Type implementationType,
+        RegistrationSource source)
     {
         foreach (var iface in implementationType.GetInterfaces())
         {
@@ -16,17 +18,19 @@ internal static class HandlerTypeInspector
             if (definition == typeof(ICommandHandler<,>))
             {
                 var args = iface.GetGenericArguments();
-                yield return new HandlerRegistration(iface, implementationType, args[0], args[1], IsCommand: true);
+                yield return new HandlerRegistration(iface, implementationType, args[0], args[1], IsCommand: true, source);
             }
             else if (definition == typeof(IQueryHandler<,>))
             {
                 var args = iface.GetGenericArguments();
-                yield return new HandlerRegistration(iface, implementationType, args[0], args[1], IsCommand: false);
+                yield return new HandlerRegistration(iface, implementationType, args[0], args[1], IsCommand: false, source);
             }
         }
     }
 
-    public static IEnumerable<(Type ServiceType, Type ImplementationType)> GetValidatorRegistrations(Type implementationType)
+    public static IEnumerable<ValidatorRegistration> GetValidatorRegistrations(
+        Type implementationType,
+        RegistrationSource source)
     {
         foreach (var iface in implementationType.GetInterfaces())
         {
@@ -35,7 +39,7 @@ internal static class HandlerTypeInspector
             var definition = iface.GetGenericTypeDefinition();
             if (definition == typeof(IValidator<>) || definition == typeof(IAsyncValidator<>))
             {
-                yield return (iface, implementationType);
+                yield return new ValidatorRegistration(iface, implementationType, source);
             }
         }
     }

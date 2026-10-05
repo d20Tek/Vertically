@@ -9,4 +9,5 @@ internal sealed record HandlerRegistration(
     Type ImplementationType,
     Type RequestType,
     Type ResultType,
-    bool IsCommand);
+    bool IsCommand,
+    RegistrationSource Source);

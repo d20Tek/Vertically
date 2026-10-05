@@ -5,7 +5,25 @@ All notable changes to D20Tek.Vertically are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.2] - 2026-09-11
+## [0.9.4]
+
+### Added
+
+- `RegistrationSource` enum tracking how each handler/validator registration was discovered
+  (`Feature`, `Scan`, `Manual`, or `Generated`).
+- `IVerticallyBuilder.HandlerRegistrations` and `IVerticallyBuilder.ValidatorRegistrations`,
+  exposing the collected registrations (as `HandlerRegistrationInfo` / `ValidatorRegistrationInfo`)
+  along with their `RegistrationSource` for diagnostics and tooling.
+- `VerticallyDiagnostics` static class with `PrintRegistrations(...)` (formatted registration
+  table dump) and `PrintDuplicateRegistrations(...)` (duplicate/overlap report) debug helpers.
+
+### Changed
+
+- Updated package dependencies to their latest versions.
+- `samples/IssueTracker/IssueTracker.Api` now maps `Result<T>` to HTTP responses using the
+  `D20Tek.Functional.AspNetCore` package's Minimal API extensions instead of a custom `ResultHttpExtensions` helper.
+
+## [0.9.3] - 2026-09-11
 
 ### Changed
 

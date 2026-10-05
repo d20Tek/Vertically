@@ -10,8 +10,10 @@ namespace D20Tek.Vertically.Registration;
 internal sealed class VerticallyBuilder : IVerticallyBuilder
 {
     private readonly List<HandlerRegistration> _handlers = [];
+    private readonly List<HandlerRegistration> _handlerAttempts = [];
     private readonly Dictionary<Type, Type> _handlerServiceToImpl = [];
-    private readonly List<(Type ServiceType, Type ImplementationType)> _validators = [];
+    private readonly List<ValidatorRegistration> _validators = [];
+    private readonly List<ValidatorRegistration> _validatorAttempts = [];
     private readonly BehaviorRegistry _behaviorRegistry = new();
 
     /// <summary>Initializes a new builder over the given service collection.</summary>
@@ -38,10 +40,27 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
     /// <inheritdoc />
     public IHandlerBehaviorScope ForQuery<TQuery>() => new HandlerBehaviorScope(this, typeof(TQuery));
 
-    internal IReadOnlyList<HandlerRegistration> HandlerRegistrations => _handlers;
+    /// <inheritdoc />
+    public IReadOnlyList<HandlerRegistrationInfo> HandlerRegistrations =>
+        [.. _handlers.Select(h => new HandlerRegistrationInfo(
+            h.ServiceType, h.ImplementationType, h.RequestType, h.ResultType, h.IsCommand, h.Source))];
+
+    /// <inheritdoc />
+    public IReadOnlyList<ValidatorRegistrationInfo> ValidatorRegistrations =>
+        [.. _validators.Select(v => new ValidatorRegistrationInfo(v.ServiceType, v.ImplementationType, v.Source))];
+
+    internal IReadOnlyList<HandlerRegistration> InternalHandlerRegistrations => _handlers;
+
+    internal IReadOnlyList<ValidatorRegistration> InternalValidatorRegistrations => _validators;
+
+    internal IReadOnlyList<HandlerRegistration> HandlerRegistrationAttempts => _handlerAttempts;
+
+    internal IReadOnlyList<ValidatorRegistration> ValidatorRegistrationAttempts => _validatorAttempts;
 
     internal void AddHandlerRegistration(HandlerRegistration registration)
     {
+        _handlerAttempts.Add(registration);
+
         if (_handlerServiceToImpl.TryGetValue(registration.ServiceType, out var existing))
         {
             // Same (service, implementation) pair: no-op dedupe (safe across feature + scan).
@@ -57,11 +76,13 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
         _handlers.Add(registration);
     }
 
-    internal void AddValidatorRegistration(Type serviceType, Type implementationType)
+    internal void AddValidatorRegistration(ValidatorRegistration registration)
     {
-        if (!_validators.Contains((serviceType, implementationType)))
+        _validatorAttempts.Add(registration);
+
+        if (!_validators.Any(v => v.ServiceType == registration.ServiceType && v.ImplementationType == registration.ImplementationType))
         {
-            _validators.Add((serviceType, implementationType));
+            _validators.Add(registration);
         }
     }
 
@@ -82,13 +103,14 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
     /// </summary>
     internal void Build()
     {
-        foreach (var (serviceType, implementationType) in _validators)
+        foreach (var registration in _validators)
         {
             // TryAddEnumerable keys off (service type, implementation type), so multiple
             // distinct validators for the same request type all register and are resolved
             // together by ValidationBehavior via GetServices, while exact duplicate
             // (service, impl) pairs from feature + scan overlap are deduped.
-            Services.TryAddEnumerable(ServiceDescriptor.Scoped(serviceType, implementationType));
+            Services.TryAddEnumerable(
+                ServiceDescriptor.Scoped(registration.ServiceType, registration.ImplementationType));
         }
 
         HandlerDecoratorComposer.Compose(this);
