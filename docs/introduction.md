@@ -36,7 +36,9 @@ Vertically takes a different approach: there is no central dispatcher. You injec
 
 **Consistent paged queries.** Building list endpoints usually means reinventing paging, sorting, and filtering. The library ships offset and cursor paged request types, `PageOf<T>` and `CursorPageOf<T>` results, sort expressions, and a composable, provider-agnostic filter tree - each with request validators - so your query slices stay consistent.
 
-**Debuggability and predictable performance.** Because handlers are injected and called directly, debugging steps straight into your code, and there is no reflection-based dispatch to resolve a handler on each request.
+there is no reflection-based dispatch to resolve a handler on each request.
+
+**Trimming and Native AOT.** The library is marked AOT compatible, and its typed registration APIs - `AddFeature<TFeature>()`, `AddCommandHandler<THandler, TCommand, TResult>()`, `AddQueryHandler<THandler, TQuery, TResult>()`, and `Add<TBehavior>()` - compose handler pipelines with generic code instead of runtime reflection. Hosts that register slices this way can be fully trimmed and published as Native AOT executables, for example small CLI tools or serverless functions with fast startup. Assembly scanning remains available for hosts that do not trim, and the trim and AOT analyzers flag it where it is used. See [Trimming and Native AOT](getting-started-detailed.md#trimming-and-native-aot) for details.
 
 ## What it doesn't try to do
 

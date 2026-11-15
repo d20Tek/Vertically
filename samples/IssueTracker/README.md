@@ -121,11 +121,16 @@ assemblies (and its own) whole with `TrimmerRootAssembly` and re-enables reflect
 `System.Text.Json`. Everything else, including D20Tek.Vertically, is trimmed. To try it:
 
 ```powershell
-dotnet publish samples/IssueTracker/IssueTracker.WebAot -c Release -r win-x64 --self-contained -p:PublishTrimmed=true
+dotnet publish samples/IssueTracker/IssueTracker.WebAot -c Release -r win-x64 --self-contained
 ```
 
 Use this host as a reference for the registration pattern in trimmed or native AOT hosts such as
 Blazor WebAssembly.
+
+> **Note:** IssueTracker.WebAot is not fully AOT compliant. EF Core relies on runtime reflection and
+> dynamic code generation for its model, value converters, and query translation, so this host only
+> supports partial trimming and cannot be published with Native AOT. For a fully trimmed, Native AOT
+> sample with no EF Core dependency, see [AotCli](../AotCli).
 
 ### CLI
 

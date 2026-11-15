@@ -6,12 +6,13 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <IsPackable>false</IsPackable>
     <IsTrimmable>true</IsTrimmable>
+    <PublishTrimmed>true</PublishTrimmed>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
     <!-- Blazor Server itself is not trim/AOT-compatible (IL2026/IL2111 from AddRazorComponents and
          generated Razor code). Keep those visible as warnings instead of failing the build. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2026;IL2111</WarningsNotAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IL2026;IL2060;IL2104;IL2110;IL2111</WarningsNotAsErrors>
     <!-- Trimmed publishes disable reflection-based System.Text.Json; Blazor Server still needs it. -->
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>

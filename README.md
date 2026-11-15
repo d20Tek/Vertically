@@ -196,6 +196,7 @@ A lightweight issue tracker whose Application and Persistence layers (EF Core wi
 
 - **IssueTracker.Api**: A Minimal API host that maps each slice to an endpoint and translates `Result<T>` into HTTP responses using RFC 7807 problem details, with an OpenAPI document and a Scalar reference UI.
 - **IssueTracker.Web**: A Blazor Web App host (interactive server rendering) that dispatches the same slices from components and translates `Result<T>` into inline UI state.
+- **IssueTracker.WebAot**: A copy of the Web host that registers the slices with the typed, trim- and AOT-compatible APIs. It is not fully AOT compliant because EF Core requires runtime reflection, so it only supports partial trimming; see the AOT CLI sample below for a fully Native AOT host.
 - **IssueTracker.Cli**: A console host built with System.CommandLine that dispatches the same slices from verbs and translates `Result<T>` into standard output and process exit codes.
 
 **Concepts demonstrated:** self-registering features, host-owned behavior policy, validation, `Result<T>` translation per host, and paged, sorted, and filtered queries.
