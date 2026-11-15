@@ -7,7 +7,9 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/samples/" />
+  <Folder Name="/samples/">
+    <Project Path="samples/AotCli/AotCli.csproj" />
+  </Folder>
   <Folder Name="/samples/IssueTracker/">
     <Project Path="samples/IssueTracker/IssueTracker.Api/IssueTracker.Api.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Application/IssueTracker.Application.csproj" />

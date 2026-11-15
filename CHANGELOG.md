@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `IHandlerRegistrationBuilder.AddFeature<TFeature>()` for explicit, AOT-compatible feature registration.
 - `samples/IssueTracker/IssueTracker.WebAot` sample host that uses typed registrations instead of
   assembly scanning. The IssueTracker features now register handlers with the typed overloads.
+- `samples/AotCli` minimal console sample that publishes as a fully trimmed Native AOT executable
+  with no trim or AOT warnings, validating the typed registration and behavior composition paths.
 
 ### Changed
 
