@@ -196,9 +196,26 @@ A lightweight issue tracker whose Application and Persistence layers (EF Core wi
 
 - **IssueTracker.Api**: A Minimal API host that maps each slice to an endpoint and translates `Result<T>` into HTTP responses using RFC 7807 problem details, with an OpenAPI document and a Scalar reference UI.
 - **IssueTracker.Web**: A Blazor Web App host (interactive server rendering) that dispatches the same slices from components and translates `Result<T>` into inline UI state.
+- **IssueTracker.WebAot**: A copy of the Web host that registers the slices with the typed, trim- and AOT-compatible APIs. It is not fully AOT compliant because EF Core requires runtime reflection, so it only supports partial trimming; see the AOT CLI sample below for a fully Native AOT host.
 - **IssueTracker.Cli**: A console host built with System.CommandLine that dispatches the same slices from verbs and translates `Result<T>` into standard output and process exit codes.
 
 **Concepts demonstrated:** self-registering features, host-owned behavior policy, validation, `Result<T>` translation per host, and paged, sorted, and filtered queries.
+
+### [AOT CLI](samples/AotCli)
+
+A minimal console application that validates Vertically under full trimming and Native AOT publishing. It has no dependencies beyond Vertically and `Microsoft.Extensions.DependencyInjection`, and defines a single `PrintMessage` feature with a validator, a handler, and a closed custom pipeline behavior.
+
+- Registers the feature with `AddFeature<TFeature>()`, the typed `AddCommandHandler<THandler, TCommand, TResult>()` overload, and `Add<TBehavior>()`, so no reflection-based composition is used.
+- Enables `ValidateOnBuild` and `ValidateScopes` on the service provider.
+- Publishes as a single native executable with `PublishAot=true`:
+
+```shell
+dotnet publish samples/AotCli/AotCli.csproj -c Release -r win-x64
+```
+
+Native AOT publishing requires the platform prerequisites described at https://aka.ms/nativeaot-prerequisites (on Windows, the Visual Studio "Desktop development with C++" workload).
+
+**Concepts demonstrated:** trim- and AOT-compatible registration, typed behavior composition, and validation in a Native AOT host.
 
 ## License
 

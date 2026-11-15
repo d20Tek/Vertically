@@ -20,7 +20,7 @@ public sealed class CreateUser : IFeature
     public const int MaxEmailLength = 256;
 
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddCommandHandler<Handler>()
+        builder.Handlers.AddCommandHandler<Handler, Command, UserResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request to create a new user.</summary>

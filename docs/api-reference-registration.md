@@ -44,11 +44,14 @@ Fluent sub-builder for registering handlers and validators, either explicitly by
 
 | Method | Type Constraint | Description |
 |---|---|---|
-| `AddCommandHandler<THandler>()` | `THandler : class` | Registers a specific command handler implementing `ICommandHandler<TCommand, TResult>`. |
-| `AddQueryHandler<THandler>()` | `THandler : class` | Registers a specific query handler implementing `IQueryHandler<TQuery, TResult>`. |
-| `AddValidator<TValidator>()` | `TValidator : class` | Registers a specific validator implementing `IValidator<T>` or `IAsyncValidator<T>`. |
-| `RegisterFromAssembly(Assembly assembly)` | - | Scans the given assembly, discovering `IFeature` implementers first (running their registration), then registering any remaining handlers and validators found. |
-| `RegisterFromAssemblies(params Assembly[] assemblies)` | - | Scans multiple assemblies. See `RegisterFromAssembly`. |
+| `AddCommandHandler<THandler>()` | `THandler : class` | Registers a specific command handler implementing `ICommandHandler<TCommand, TResult>`, discovering its types with reflection. Annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
+| `AddCommandHandler<THandler, TCommand, TResult>()` | `THandler : class, ICommandHandler<TCommand, TResult>` | Registers a command handler with its types known at compile time. Trim- and AOT-compatible. |
+| `AddQueryHandler<THandler>()` | `THandler : class` | Registers a specific query handler implementing `IQueryHandler<TQuery, TResult>`, discovering its types with reflection. Annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
+| `AddQueryHandler<THandler, TQuery, TResult>()` | `THandler : class, IQueryHandler<TQuery, TResult>` | Registers a query handler with its types known at compile time. Trim- and AOT-compatible. |
+| `AddValidator<TValidator>()` | `TValidator : class` | Registers a specific validator implementing `IValidator<T>` or `IAsyncValidator<T>`. Trim- and AOT-compatible. |
+| `AddFeature<TFeature>()` | `TFeature : IFeature, new()` | Creates the feature and runs its `Register` method. Registrations made inside it are tagged `RegistrationSource.Feature`. Trim- and AOT-compatible when the feature uses the typed APIs. |
+| `RegisterFromAssembly(Assembly assembly)` | - | Scans the given assembly, discovering `IFeature` implementers first (running their registration), then registering any remaining handlers and validators found. Annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
+| `RegisterFromAssemblies(params Assembly[] assemblies)` | - | Scans multiple assemblies. See `RegisterFromAssembly`. Annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
 
 ## IBehaviorRegistrationBuilder
 
@@ -56,7 +59,8 @@ Fluent sub-builder for configuring global (all-handler) pipeline behaviors. Beha
 
 | Method | Description |
 |---|---|
-| `Add(Type openGenericBehaviorType)` | Adds a global custom behavior by its open generic type definition (for example `typeof(MyBehavior<,>)`). The type must implement `IPipelineBehavior<TRequest, TResult>`. |
+| `Add(Type openGenericBehaviorType)` | Adds a global custom behavior by its open generic type definition (for example `typeof(MyBehavior<,>)`). The type must implement `IPipelineBehavior<TRequest, TResult>`. Closed per handler with `MakeGenericType`, so it is annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
+| `Add<TBehavior>()` | Adds a global custom behavior by its closed type (for example `MyBehavior<CreateOrder.Command, OrderResponse>`). Applied to every handler whose `IPipelineBehavior<TRequest, TResult>` it implements and skipped for others. Trim- and AOT-compatible. |
 | `AddLogging()` | Adds the built-in logging behavior (request name and outcome). |
 | `AddTiming()` | Adds the built-in timing behavior (elapsed time around the handler). |
 | `AddExceptionToResult()` | Adds the built-in behavior that maps unexpected exceptions to a failure result. |
@@ -68,13 +72,14 @@ Fluent scope for configuring behaviors on a single handler, opened via `ForComma
 
 | Method | Description |
 |---|---|
-| `Add(Type openGenericBehaviorType)` | Adds a per-handler custom behavior by its open generic type definition, using the currently pending placement (innermost by default). The type must implement `IPipelineBehavior<TRequest, TResult>`. |
+| `Add(Type openGenericBehaviorType)` | Adds a per-handler custom behavior by its open generic type definition, using the currently pending placement (innermost by default). The type must implement `IPipelineBehavior<TRequest, TResult>`. Annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`. |
+| `Add<TBehavior>()` | Adds a per-handler custom behavior by its closed type, using the currently pending placement. The behavior must implement the handler's `IPipelineBehavior<TRequest, TResult>`; otherwise `AddVertically` throws `InvalidOperationException`. Trim- and AOT-compatible. |
 | `AddLogging()` | Adds the built-in logging behavior for this handler. |
 | `AddTiming()` | Adds the built-in timing behavior for this handler. |
 | `AddExceptionToResult()` | Adds the built-in exception-to-result behavior for this handler. |
 | `AddValidation()` | Adds the built-in validation behavior for this handler. |
 | `AtOutermost()` | Places the next added behavior outside all existing behaviors for this handler (runs first on the way in). |
-| `InsertBefore(Type anchorOpenGenericBehaviorType)` | Places the next added behavior immediately outside the given anchor behavior in this handler's pipeline. |
+| `InsertBefore(Type anchorBehaviorType)` | Places the next added behavior immediately outside the given anchor behavior in this handler's pipeline. The anchor is the open generic definition of a built-in or `Add(Type)` behavior, or the closed type of an `Add<TBehavior>()` behavior. |
 
 ## RegistrationSource
 

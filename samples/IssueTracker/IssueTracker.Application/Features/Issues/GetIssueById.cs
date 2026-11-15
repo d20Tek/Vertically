@@ -14,7 +14,7 @@ namespace IssueTracker.Application.Features.Issues;
 public sealed class GetIssueById : IFeature
 {
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddQueryHandler<Handler>()
+        builder.Handlers.AddQueryHandler<Handler, Query, IssueResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request for the issue identified by <paramref name="IssueId"/>.</summary>

@@ -7,13 +7,16 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/samples/" />
+  <Folder Name="/samples/">
+    <Project Path="samples/AotCli/AotCli.csproj" />
+  </Folder>
   <Folder Name="/samples/IssueTracker/">
     <Project Path="samples/IssueTracker/IssueTracker.Api/IssueTracker.Api.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Application/IssueTracker.Application.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Cli/IssueTracker.Cli.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Persistence/IssueTracker.Persistence.csproj" />
     <Project Path="samples/IssueTracker/IssueTracker.Web/IssueTracker.Web.csproj" />
+    <Project Path="samples/IssueTracker/IssueTracker.WebAot/IssueTracker.WebAot.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/D20Tek.Vertically/D20Tek.Vertically.csproj" Id="0e541134-1dc7-4085-bc2a-3ce91b77a75d" />

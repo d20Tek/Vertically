@@ -2,101 +2,147 @@ namespace D20Tek.Vertically.Registration;
 
 internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IHandlerRegistrationBuilder
 {
-    private readonly VerticallyBuilder _builder = builder;
-    private RegistrationSource _currentSource = RegistrationSource.Manual;
+	private readonly VerticallyBuilder _builder = builder;
+	private RegistrationSource _currentSource = RegistrationSource.Manual;
 
-    public IHandlerRegistrationBuilder AddCommandHandler<THandler>() where THandler : class =>
-        AddHandler(typeof(THandler), expectedCommand: true);
+	[RequiresUnreferencedCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	[RequiresDynamicCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddCommandHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>() =>
+		AddHandler(typeof(THandler), expectedCommand: true);
 
-    public IHandlerRegistrationBuilder AddQueryHandler<THandler>() where THandler : class =>
-        AddHandler(typeof(THandler), expectedCommand: false);
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddCommandHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler,
+		TCommand,
+		TResult>()
+	{
+		_builder.AddHandlerRegistration(
+			HandlerTypeInspector.CreateCommandRegistration<THandler, TCommand, TResult>(_currentSource));
+		return this;
+	}
 
-    public IHandlerRegistrationBuilder AddValidator<TValidator>() where TValidator : class
-    {
-        var registrations = HandlerTypeInspector
-            .GetValidatorRegistrations(typeof(TValidator), _currentSource)
-            .ToArray();
-        if (registrations.Length == 0)
-        {
-            throw new InvalidOperationException($"Type '{typeof(TValidator)}' does not implement IValidator<T> or IAsyncValidator<T>.");
-        }
+	[RequiresUnreferencedCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	[RequiresDynamicCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddQueryHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>() =>
+		AddHandler(typeof(THandler), expectedCommand: false);
 
-        foreach (var registration in registrations)
-        {
-            _builder.AddValidatorRegistration(registration);
-        }
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddQueryHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler,
+		TQuery,
+		TResult>()
+	{
+		_builder.AddHandlerRegistration(
+			HandlerTypeInspector.CreateQueryRegistration<THandler, TQuery, TResult>(_currentSource));
+		return this;
+	}
 
-        return this;
-    }
+	public IHandlerRegistrationBuilder AddValidator<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] TValidator>()
+		where TValidator : class
+	{
+		var registrations = HandlerTypeInspector
+			.GetValidatorRegistrations(typeof(TValidator), _currentSource)
+			.ToArray();
+		if (registrations.Length == 0)
+		{
+			throw new InvalidOperationException($"Type '{typeof(TValidator)}' does not implement IValidator<T> or IAsyncValidator<T>.");
+		}
 
-    public IHandlerRegistrationBuilder RegisterFromAssembly(Assembly assembly)
-    {
-        var types = assembly.GetTypes().Where(HandlerTypeInspector.IsConcreteClass).ToArray();
+		foreach (var registration in registrations)
+		{
+			_builder.AddValidatorRegistration(registration);
+		}
 
-        // Phase 1: features first — let each feature register itself.
-        var featureTypes = types.Where(t => typeof(IFeature).IsAssignableFrom(t)).ToArray();
+		return this;
+	}
 
-        var previousSource = _currentSource;
-        _currentSource = RegistrationSource.Feature;
-        try
-        {
-            foreach (var featureType in featureTypes)
-            {
-                var feature = (IFeature)Activator.CreateInstance(featureType)!;
-                feature.Register(_builder);
-            }
-        }
-        finally
-        {
-            _currentSource = previousSource;
-        }
+	public IHandlerRegistrationBuilder AddFeature<TFeature>()
+		where TFeature : IFeature, new()
+	{
+		RunFeature(new TFeature());
+		return this;
+	}
 
-        // Phase 2: loose scan — register remaining handlers/validators, skipping feature-owned types.
-        var featureSet = new HashSet<Type>(featureTypes);
-        foreach (var type in types)
-        {
-            if (featureSet.Contains(type) || HandlerTypeInspector.IsNestedInside(type, featureSet)) continue;
+	[RequiresUnreferencedCode(HandlerTypeInspector.ScanReflectionMessage)]
+	[RequiresDynamicCode(HandlerTypeInspector.ScanReflectionMessage)]
+	public IHandlerRegistrationBuilder RegisterFromAssembly(Assembly assembly)
+	{
+		var types = assembly.GetTypes().Where(HandlerTypeInspector.IsConcreteClass).ToArray();
 
-            foreach (var registration in HandlerTypeInspector.GetHandlerRegistrations(type, RegistrationSource.Scan))
-            {
-                _builder.AddHandlerRegistration(registration);
-            }
+		// Phase 1: features first - let each feature register itself.
+		var featureTypes = types.Where(t => typeof(IFeature).IsAssignableFrom(t)).ToArray();
+		foreach (var featureType in featureTypes)
+		{
+			RunFeature((IFeature)Activator.CreateInstance(featureType)!);
+		}
 
-            foreach (var registration in HandlerTypeInspector.GetValidatorRegistrations(type, RegistrationSource.Scan))
-            {
-                _builder.AddValidatorRegistration(registration);
-            }
-        }
+		// Phase 2: loose scan - register remaining handlers/validators, skipping feature-owned types.
+		var featureSet = new HashSet<Type>(featureTypes);
+		foreach (var type in types)
+		{
+			if (featureSet.Contains(type) || HandlerTypeInspector.IsNestedInside(type, featureSet)) continue;
 
-        return this;
-    }
+			foreach (var registration in HandlerTypeInspector.GetHandlerRegistrations(type, RegistrationSource.Scan))
+			{
+				_builder.AddHandlerRegistration(registration);
+			}
 
-    public IHandlerRegistrationBuilder RegisterFromAssemblies(params Assembly[] assemblies)
-    {
-        foreach (var assembly in assemblies)
-        {
-            RegisterFromAssembly(assembly);
-        }
+			foreach (var registration in HandlerTypeInspector.GetValidatorRegistrations(type, RegistrationSource.Scan))
+			{
+				_builder.AddValidatorRegistration(registration);
+			}
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    private HandlerRegistrationBuilder AddHandler(Type implementationType, bool expectedCommand)
-    {
-        var registrations = HandlerTypeInspector.GetHandlerRegistrations(implementationType, _currentSource)
-            .Where(r => r.IsCommand == expectedCommand).ToArray();
+	[RequiresUnreferencedCode(HandlerTypeInspector.ScanReflectionMessage)]
+	[RequiresDynamicCode(HandlerTypeInspector.ScanReflectionMessage)]
+	public IHandlerRegistrationBuilder RegisterFromAssemblies(params Assembly[] assemblies)
+	{
+		foreach (var assembly in assemblies)
+		{
+			RegisterFromAssembly(assembly);
+		}
 
-        if (registrations.Length == 0)
-        {
-            var expected = expectedCommand ? "ICommandHandler<TCommand, TResult>" : "IQueryHandler<TQuery, TResult>";
-            throw new InvalidOperationException($"Type '{implementationType}' does not implement {expected}.");
-        }
+		return this;
+	}
 
-        foreach (var registration in registrations)
-        {
-            _builder.AddHandlerRegistration(registration);
-        }
+	private void RunFeature(IFeature feature)
+	{
+		var previousSource = _currentSource;
+		_currentSource = RegistrationSource.Feature;
+		try
+		{
+			feature.Register(_builder);
+		}
+		finally
+		{
+			_currentSource = previousSource;
+		}
+	}
 
-        return this;
-    }
+	[RequiresUnreferencedCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	[RequiresDynamicCode(HandlerTypeInspector.HandlerReflectionMessage)]
+	private HandlerRegistrationBuilder AddHandler(
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type implementationType,
+		bool expectedCommand)
+	{
+		var registrations = HandlerTypeInspector.GetHandlerRegistrations(implementationType, _currentSource)
+			.Where(r => r.IsCommand == expectedCommand).ToArray();
+
+		if (registrations.Length == 0)
+		{
+			var expected = expectedCommand ? "ICommandHandler<TCommand, TResult>" : "IQueryHandler<TQuery, TResult>";
+			throw new InvalidOperationException($"Type '{implementationType}' does not implement {expected}.");
+		}
+
+		foreach (var registration in registrations)
+		{
+			_builder.AddHandlerRegistration(registration);
+		}
+
+		return this;
+	}
 }

@@ -16,7 +16,7 @@ public sealed class GetUsers : IFeature
     private const int _hardUserLimit = 100;
 
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddQueryHandler<Handler>();
+        builder.Handlers.AddQueryHandler<Handler, Query, IReadOnlyList<UserResponse>>();
 
     /// <summary>Request for all users available as assignees.</summary>
     public sealed record Query : IQuery<IReadOnlyList<UserResponse>>;

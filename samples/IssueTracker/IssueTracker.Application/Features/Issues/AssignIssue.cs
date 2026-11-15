@@ -16,7 +16,7 @@ namespace IssueTracker.Application.Features.Issues;
 public sealed class AssignIssue : IFeature
 {
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddCommandHandler<Handler>()
+        builder.Handlers.AddCommandHandler<Handler, Command, IssueResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request to assign <paramref name="IssueId"/> to <paramref name="AssigneeId"/>.</summary>

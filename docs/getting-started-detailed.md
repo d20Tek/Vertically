@@ -18,6 +18,10 @@ The examples below follow the main line of everyday usage. They do not cover eve
   - [Selecting Behaviors](#selecting-behaviors)
   - [Behavior Ordering and Placement](#behavior-ordering-and-placement)
   - [Writing a Custom Behavior](#writing-a-custom-behavior)
+- [Trimming and Native AOT](#trimming-and-native-aot)
+  - [Registering Features and Handlers Explicitly](#registering-features-and-handlers-explicitly)
+  - [Registering Custom Behaviors](#registering-custom-behaviors)
+  - [Publishing a Native AOT Host](#publishing-a-native-aot-host)
 
 ## Usage
 
@@ -332,4 +336,86 @@ public sealed class AuditBehavior<TRequest, TResult> : IPipelineBehavior<TReques
 }
 ```
 
-Register it globally with `v.Behaviors.Add(typeof(AuditBehavior<,>))` or per handler with `Add(typeof(AuditBehavior<,>))` inside a `ForCommand`/`ForQuery` scope. Behaviors are resolved as singletons by default. If your behavior resolves scoped services from the request scope, implement the `IScopedBehavior` marker so it is registered with a scoped lifetime instead, avoiding a captive-dependency bug (this is exactly how the built-in validation behavior resolves scoped validators).
+avoiding a captive-dependency bug (this is exactly how the built-in validation behavior resolves scoped validators).
+
+## Trimming and Native AOT
+
+D20Tek.Vertically is marked `<IsAotCompatible>true</IsAotCompatible>` and can run in fully trimmed and Native AOT hosts. The built-in behaviors (`AddLogging()`, `AddTiming()`, `AddValidation()`, and `AddExceptionToResult()`) compose pipelines with generic code and are safe on every registration path. Handler and behavior registration, however, has two paths:
+
+| Path | APIs | Trim and AOT safe |
+|---|---|---|
+| Typed | `AddFeature<TFeature>()`, `AddCommandHandler<THandler, TCommand, TResult>()`, `AddQueryHandler<THandler, TQuery, TResult>()`, `AddValidator<TValidator>()`, `Add<TBehavior>()` | Yes |
+| Reflection | `RegisterFromAssembly`, `RegisterFromAssemblies`, `AddCommandHandler<THandler>()`, `AddQueryHandler<THandler>()`, `Add(Type)` | No |
+
+The reflection APIs are annotated with `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`, so the trim and AOT analyzers report a warning wherever they are called. They remain available for hosts that do not trim. To enable the analyzers in your host, set `<IsAotCompatible>true</IsAotCompatible>` (for a library) or `<PublishAot>true</PublishAot>` (for an executable) in the project file.
+
+### Registering Features and Handlers Explicitly
+
+Replace assembly scanning with one `AddFeature<TFeature>()` call per feature, and register each handler with the overload that names its request and result types:
+
+```csharp
+public sealed class CreateProduct : IFeature
+{
+	public sealed record Command(string Name, decimal Price) : ICommand<ProductResponse>;
+
+	public void Register(IVerticallyBuilder builder) =>
+		builder.Handlers.AddCommandHandler<Handler, Command, ProductResponse>()
+						.AddValidator<Validator>();
+
+	// Handler and Validator as shown earlier.
+}
+
+builder.Services.AddVertically(v =>
+{
+	v.Handlers
+		.AddFeature<CreateProduct>()
+		.AddFeature<GetProductById>();
+	v.Behaviors
+		.AddValidation()
+		.AddExceptionToResult();
+});
+```
+
+The typed overloads let Vertically compose the behavior pipeline for each handler at compile time, with no `MakeGenericType` or reflection-based construction at run time.
+
+### Registering Custom Behaviors
+
+Open generic behaviors registered with `Add(typeof(AuditBehavior<,>))` must be closed at run time, which is not AOT safe. In a trimmed or Native AOT host, write the behavior as a closed type for a specific request and register it with `Add<TBehavior>()` inside a per-handler scope:
+
+```csharp
+public sealed class CreateProductAudit(IAuditLog audit)
+	: IPipelineBehavior<CreateProduct.Command, ProductResponse>
+{
+	public async Task<Result<ProductResponse>> HandleAsync(
+		CreateProduct.Command request,
+		RequestHandlerDelegate<ProductResponse> next,
+		CancellationToken cancellationToken = default)
+	{
+		await audit.RecordAsync(nameof(CreateProduct), cancellationToken);
+		return await next();
+	}
+}
+
+v.ForCommand<CreateProduct.Command>().Add<CreateProductAudit>();
+```
+
+`InsertBefore` also accepts closed behavior types as anchors, so placement modifiers work the same way on the typed path.
+
+### Publishing a Native AOT Host
+
+Set `PublishAot` in the host project and publish for a specific runtime identifier:
+
+```xml
+<PropertyGroup>
+	<PublishAot>true</PublishAot>
+	<InvariantGlobalization>true</InvariantGlobalization>
+</PropertyGroup>
+```
+
+```shell
+dotnet publish -c Release -r win-x64
+```
+
+Native AOT publishing requires the platform prerequisites described at https://aka.ms/nativeaot-prerequisites (on Windows, the Visual Studio "Desktop development with C++" workload). Enabling `ValidateOnBuild` on the service provider is recommended so registration errors surface at startup.
+
+Vertically being AOT compatible does not make every dependency compatible. EF Core and Blazor Server, for example, depend on runtime reflection and cannot be published with Native AOT. For a complete working example, see the [AotCli sample](../samples/AotCli), which publishes as a fully trimmed native executable with no trim or AOT warnings.
