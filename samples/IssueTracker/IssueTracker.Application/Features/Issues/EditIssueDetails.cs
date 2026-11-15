@@ -15,7 +15,7 @@ namespace IssueTracker.Application.Features.Issues;
 public sealed class EditIssueDetails : IFeature
 {
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddCommandHandler<Handler>()
+        builder.Handlers.AddCommandHandler<Handler, Command, IssueResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request to update <paramref name="IssueId"/>'s title and description.</summary>

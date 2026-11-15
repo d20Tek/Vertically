@@ -16,7 +16,7 @@ namespace IssueTracker.Application.Features.Issues;
 public sealed class GetIssues : IFeature
 {
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddQueryHandler<Handler>()
+        builder.Handlers.AddQueryHandler<Handler, Query, PageOf<IssueResponse>>()
                         .AddValidator<Validator>();
 
     /// <summary>Paged/sorted/filtered request for issues.</summary>

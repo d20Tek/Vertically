@@ -6,5 +6,6 @@ namespace D20Tek.Vertically.Registration;
 /// </summary>
 internal sealed record ValidatorRegistration(
 	Type ServiceType,
+	[param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 	[property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type ImplementationType,
 	RegistrationSource Source);

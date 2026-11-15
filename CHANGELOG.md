@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Add<TBehavior>()` on `IBehaviorRegistrationBuilder` and `IHandlerBehaviorScope` for closed,
   trim- and AOT-compatible custom behaviors.
 - `IHandlerRegistrationBuilder.AddFeature<TFeature>()` for explicit, AOT-compatible feature registration.
+- `samples/IssueTracker/IssueTracker.WebAot` sample host that uses typed registrations instead of
+  assembly scanning. The IssueTracker features now register handlers with the typed overloads.
 
 ### Changed
 

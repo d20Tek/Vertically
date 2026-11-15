@@ -7,18 +7,14 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
 
 	[RequiresUnreferencedCode(HandlerTypeInspector.HandlerReflectionMessage)]
 	[RequiresDynamicCode(HandlerTypeInspector.HandlerReflectionMessage)]
-	public IHandlerRegistrationBuilder AddCommandHandler<
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>()
-		where THandler : class =>
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddCommandHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>() =>
 		AddHandler(typeof(THandler), expectedCommand: true);
 
-	public IHandlerRegistrationBuilder AddCommandHandler<
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddCommandHandler<
 		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler,
 		TCommand,
 		TResult>()
-		where THandler : class, ICommandHandler<TCommand, TResult>
-		where TCommand : ICommand<TResult>
-		where TResult : notnull
 	{
 		_builder.AddHandlerRegistration(
 			HandlerTypeInspector.CreateCommandRegistration<THandler, TCommand, TResult>(_currentSource));
@@ -27,18 +23,14 @@ internal sealed class HandlerRegistrationBuilder(VerticallyBuilder builder) : IH
 
 	[RequiresUnreferencedCode(HandlerTypeInspector.HandlerReflectionMessage)]
 	[RequiresDynamicCode(HandlerTypeInspector.HandlerReflectionMessage)]
-	public IHandlerRegistrationBuilder AddQueryHandler<
-		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>()
-		where THandler : class =>
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddQueryHandler<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] THandler>() =>
 		AddHandler(typeof(THandler), expectedCommand: false);
 
-	public IHandlerRegistrationBuilder AddQueryHandler<
+	IHandlerRegistrationBuilder IHandlerRegistrationBuilder.AddQueryHandler<
 		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler,
 		TQuery,
 		TResult>()
-		where THandler : class, IQueryHandler<TQuery, TResult>
-		where TQuery : IQuery<TResult>
-		where TResult : notnull
 	{
 		_builder.AddHandlerRegistration(
 			HandlerTypeInspector.CreateQueryRegistration<THandler, TQuery, TResult>(_currentSource));

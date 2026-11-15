@@ -1,0 +1,49 @@
+@implements IDisposable
+@inject NavigationManager Navigation
+
+<nav class="topnav">
+    <div class="topnav-inner">
+        <a class="topnav-brand" href="/issues">
+            <span class="topnav-logo" aria-hidden="true">🐞</span>
+            <span>Issue Tracker</span>
+        </a>
+
+        <button class="topnav-toggle" type="button" @onclick="ToggleMenu"
+                aria-label="Toggle navigation" aria-expanded="@_menuOpen">
+            <span class="topnav-toggle-bar"></span>
+            <span class="topnav-toggle-bar"></span>
+            <span class="topnav-toggle-bar"></span>
+        </button>
+
+        <div class="topnav-links @(_menuOpen ? "is-open" : "")">
+            <NavLink class="topnav-link" href="/issues" Match="NavLinkMatch.All" @onclick="CloseMenu">
+                Board
+            </NavLink>
+            <NavLink class="topnav-link" href="/issues/new" @onclick="CloseMenu">
+                New issue
+            </NavLink>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool _menuOpen;
+
+    protected override void OnInitialized() =>
+        Navigation.LocationChanged += OnLocationChanged;
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+
+    private void CloseMenu() => _menuOpen = false;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (_menuOpen)
+        {
+            _menuOpen = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

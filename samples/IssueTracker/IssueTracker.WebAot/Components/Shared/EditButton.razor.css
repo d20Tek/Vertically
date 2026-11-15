@@ -1,0 +1,16 @@
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+}
+
+.edit-button:hover {
+    opacity: 1;
+}

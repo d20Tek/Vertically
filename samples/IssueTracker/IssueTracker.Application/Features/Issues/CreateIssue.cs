@@ -20,7 +20,7 @@ public sealed class CreateIssue : IFeature
     public const int MaxDescriptionLength = 4000;
 
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddCommandHandler<Handler>()
+        builder.Handlers.AddCommandHandler<Handler, Command, IssueResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request to create a new issue. When <see cref="Key"/> is null, one is auto-generated.</summary>

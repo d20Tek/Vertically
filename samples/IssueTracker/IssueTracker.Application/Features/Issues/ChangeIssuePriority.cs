@@ -14,7 +14,7 @@ namespace IssueTracker.Application.Features.Issues;
 public sealed class ChangeIssuePriority : IFeature
 {
     public void Register(IVerticallyBuilder builder) =>
-        builder.Handlers.AddCommandHandler<Handler>()
+        builder.Handlers.AddCommandHandler<Handler, Command, IssueResponse>()
                         .AddValidator<Validator>();
 
     /// <summary>Request to set <paramref name="IssueId"/>'s priority to <paramref name="Priority"/>.</summary>

@@ -14,6 +14,7 @@ own presentation and cross-cutting *policy*.
 | [`IssueTracker.Persistence`](IssueTracker.Persistence) | EF Core (SQLite) implementation of `IIssueDbContext`, entity configuration, migrations, deterministic seed, and the shared-database resolution helper. |
 | [`IssueTracker.Api`](IssueTracker.Api) | Minimal API host. Maps each slice to an endpoint and translates `Result<T>` → HTTP (RFC 7807 problem details). OpenAPI + Scalar UI. |
 | [`IssueTracker.Web`](IssueTracker.Web) | Blazor Web App (interactive server). Dispatches the same slices from components and translates `Result<T>` → UI state. |
+| [`IssueTracker.WebAot`](IssueTracker.WebAot) | Copy of `IssueTracker.Web` that registers the slices with the typed, trim- and AOT-compatible path (`AddFeature<TFeature>()` and typed handler overloads) instead of assembly scanning. |
 | [`IssueTracker.Cli`](IssueTracker.Cli) | Console host (System.CommandLine). Dispatches the same slices from verbs and translates `Result<T>` → stdout/stderr + exit codes. |
 
 ```
@@ -103,6 +104,28 @@ dotnet run --project samples/IssueTracker/IssueTracker.Web
 
 Open the printed URL for the issues board, with filtering/sorting/paging and create/assign/status/
 priority/edit workflows.
+
+### WebAot
+
+```powershell
+dotnet run --project samples/IssueTracker/IssueTracker.WebAot
+```
+
+Same UI as the Web host, listening on `http://localhost:5036`. It calls
+`AddIssueTrackerApplicationTyped`, which adds each feature with `AddFeature<TFeature>()`; each feature
+registers its handler with `AddCommandHandler<THandler, TCommand, TResult>()` or
+`AddQueryHandler<THandler, TQuery, TResult>()`. The project enables the trim and AOT analyzers, and
+Vertically produces no analyzer warnings on this path. Blazor Server, EF Core, and the sample's
+expression-based query translator are not trim-compatible themselves, so the project keeps those
+assemblies (and its own) whole with `TrimmerRootAssembly` and re-enables reflection-based
+`System.Text.Json`. Everything else, including D20Tek.Vertically, is trimmed. To try it:
+
+```powershell
+dotnet publish samples/IssueTracker/IssueTracker.WebAot -c Release -r win-x64 --self-contained -p:PublishTrimmed=true
+```
+
+Use this host as a reference for the registration pattern in trimmed or native AOT hosts such as
+Blazor WebAssembly.
 
 ### CLI
 
