@@ -18,7 +18,10 @@ internal enum PlacementKind
 /// <summary>
 /// A single per-handler behavior registration together with its requested placement.
 /// </summary>
-/// <param name="BehaviorType">The open generic behavior type definition.</param>
+/// <param name="Behavior">The behavior descriptor.</param>
 /// <param name="Kind">The placement strategy.</param>
-/// <param name="Anchor">The anchor behavior type when <see cref="Kind"/> is <see cref="PlacementKind.Before"/>.</param>
-internal readonly record struct BehaviorPlacement(Type BehaviorType, PlacementKind Kind, Type? Anchor);
+/// <param name="Anchor">
+/// The anchor behavior identity when <see cref="Kind"/> is <see cref="PlacementKind.Before"/>
+/// (an open generic definition, or a closed type for typed behaviors).
+/// </param>
+internal readonly record struct BehaviorPlacement(BehaviorDescriptor Behavior, PlacementKind Kind, Type? Anchor);

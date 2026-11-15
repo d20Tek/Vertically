@@ -86,14 +86,14 @@ internal sealed class VerticallyBuilder : IVerticallyBuilder
         }
     }
 
-    internal void AddGlobalBehavior(Type openGenericBehaviorType) =>
-        _behaviorRegistry.AddGlobal(openGenericBehaviorType);
+    internal void AddGlobalBehavior(BehaviorDescriptor descriptor) =>
+        _behaviorRegistry.AddGlobal(descriptor);
 
     internal void AddHandlerBehavior(Type requestType, BehaviorPlacement placement) =>
         _behaviorRegistry.AddForHandler(requestType, placement);
 
-    internal IReadOnlyList<Type> GetBehaviorDefinitionsFor(HandlerRegistration registration) =>
-        _behaviorRegistry.GetDefinitionsFor(registration);
+    internal IReadOnlyList<BehaviorEntry> GetBehaviorEntriesFor(HandlerRegistration registration) =>
+        _behaviorRegistry.GetEntriesFor(registration);
 
     /// <summary>
     /// Materializes the collected registrations into the service collection. Handlers and

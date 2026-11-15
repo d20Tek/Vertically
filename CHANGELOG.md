@@ -5,6 +5,28 @@ All notable changes to D20Tek.Vertically are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5]
+
+### Added
+
+- `<IsAotCompatible>true</IsAotCompatible>` on the `D20Tek.Vertically` package.
+- Typed handler overloads `AddCommandHandler<THandler, TCommand, TResult>()` and
+  `AddQueryHandler<THandler, TQuery, TResult>()` that compose pipeline behaviors without reflection.
+- `Add<TBehavior>()` on `IBehaviorRegistrationBuilder` and `IHandlerBehaviorScope` for closed,
+  trim- and AOT-compatible custom behaviors.
+- `IHandlerRegistrationBuilder.AddFeature<TFeature>()` for explicit, AOT-compatible feature registration.
+
+### Changed
+
+- Pipeline behavior composition now uses generic code instead of `MakeGenericType`,
+  `Array.CreateInstance`, and reflection-based constructor calls. Built-in behaviors are AOT-safe
+  on every registration path.
+- `RegisterFromAssembly`, `RegisterFromAssemblies`, the single-type-argument `AddCommandHandler<THandler>()`
+  and `AddQueryHandler<THandler>()`, and `Add(Type)` on behavior builders are annotated with
+  `[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`, so the trim and AOT analyzers flag them.
+- `IHandlerBehaviorScope.InsertBefore` accepts closed behavior types as anchors; its parameter is
+  renamed to `anchorBehaviorType`.
+
 ## [0.9.4]
 
 ### Added

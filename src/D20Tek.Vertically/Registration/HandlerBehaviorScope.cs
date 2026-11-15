@@ -1,55 +1,62 @@
 namespace D20Tek.Vertically.Registration;
 
-using D20Tek.Vertically.Behaviors;
-
 internal sealed class HandlerBehaviorScope(VerticallyBuilder builder, Type requestType) : IHandlerBehaviorScope
 {
-    private readonly VerticallyBuilder _builder = builder;
-    private readonly Type _requestType = requestType;
-    private PlacementKind _pendingKind = PlacementKind.Innermost;
-    private Type? _pendingAnchor;
+	private readonly VerticallyBuilder _builder = builder;
+	private readonly Type _requestType = requestType;
+	private PlacementKind _pendingKind = PlacementKind.Innermost;
+	private Type? _pendingAnchor;
 
-    public IHandlerBehaviorScope Add(Type openGenericBehaviorType)
-    {
-        ArgumentNullException.ThrowIfNull(openGenericBehaviorType);
-        BehaviorTypeValidator.EnsureOpenGenericPipelineBehavior(
-            openGenericBehaviorType, nameof(openGenericBehaviorType));
+	[RequiresUnreferencedCode(OpenGenericBehaviorDescriptor.ReflectionMessage)]
+	[RequiresDynamicCode(OpenGenericBehaviorDescriptor.ReflectionMessage)]
+	public IHandlerBehaviorScope Add(
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type openGenericBehaviorType)
+	{
+		BehaviorTypeValidator.EnsureOpenGenericPipelineBehavior(openGenericBehaviorType, nameof(openGenericBehaviorType));
 
-        if (_pendingKind == PlacementKind.Before)
-        {
-            BehaviorTypeValidator.EnsureOpenGenericPipelineBehavior(
-                _pendingAnchor!, nameof(openGenericBehaviorType));
-        }
+		var descriptor = (BehaviorDescriptor?)BuiltInBehaviorDescriptor.Find(openGenericBehaviorType)
+			?? new OpenGenericBehaviorDescriptor(openGenericBehaviorType);
+		return AddPlaced(descriptor);
+	}
 
-        _builder.AddHandlerBehavior(
-            _requestType,
-            new BehaviorPlacement(openGenericBehaviorType, _pendingKind, _pendingAnchor));
+	public IHandlerBehaviorScope Add<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] TBehavior>()
+		where TBehavior : class
+	{
+		BehaviorTypeValidator.EnsurePipelineBehavior(typeof(TBehavior), nameof(TBehavior));
+		return AddPlaced(new TypedBehaviorDescriptor<TBehavior>());
+	}
 
-        _pendingKind = PlacementKind.Innermost;
-        _pendingAnchor = null;
-        return this;
-    }
+	public IHandlerBehaviorScope AtOutermost()
+	{
+		_pendingKind = PlacementKind.Outermost;
+		_pendingAnchor = null;
+		return this;
+	}
 
-    public IHandlerBehaviorScope AtOutermost()
-    {
-        _pendingKind = PlacementKind.Outermost;
-        _pendingAnchor = null;
-        return this;
-    }
+	public IHandlerBehaviorScope InsertBefore(
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type anchorBehaviorType)
+	{
+		BehaviorTypeValidator.EnsurePipelineBehavior(anchorBehaviorType, nameof(anchorBehaviorType));
+		_pendingKind = PlacementKind.Before;
+		_pendingAnchor = anchorBehaviorType;
+		return this;
+	}
 
-    public IHandlerBehaviorScope InsertBefore(Type anchorOpenGenericBehaviorType)
-    {
-        ArgumentNullException.ThrowIfNull(anchorOpenGenericBehaviorType);
-        _pendingKind = PlacementKind.Before;
-        _pendingAnchor = anchorOpenGenericBehaviorType;
-        return this;
-    }
+	public IHandlerBehaviorScope AddLogging() => AddPlaced(BuiltInBehaviorDescriptor.Logging);
 
-    public IHandlerBehaviorScope AddLogging() => Add(typeof(LoggingBehavior<,>));
+	public IHandlerBehaviorScope AddTiming() => AddPlaced(BuiltInBehaviorDescriptor.Timing);
 
-    public IHandlerBehaviorScope AddTiming() => Add(typeof(TimingBehavior<,>));
+	public IHandlerBehaviorScope AddExceptionToResult() => AddPlaced(BuiltInBehaviorDescriptor.ExceptionToResult);
 
-    public IHandlerBehaviorScope AddExceptionToResult() => Add(typeof(ExceptionToResultBehavior<,>));
+	public IHandlerBehaviorScope AddValidation() => AddPlaced(BuiltInBehaviorDescriptor.Validation);
 
-    public IHandlerBehaviorScope AddValidation() => Add(typeof(ValidationBehavior<,>));
+	private HandlerBehaviorScope AddPlaced(BehaviorDescriptor descriptor)
+	{
+		_builder.AddHandlerBehavior(_requestType, new BehaviorPlacement(descriptor, _pendingKind, _pendingAnchor));
+
+		_pendingKind = PlacementKind.Innermost;
+		_pendingAnchor = null;
+		return this;
+	}
 }

@@ -2,19 +2,19 @@ namespace D20Tek.Vertically.Registration;
 
 /// <summary>
 /// Owns global and per-handler pipeline behavior placement intent, and computes the ordered
-/// open-generic behavior definitions that apply to a given handler. Extracted from
+/// behavior entries that apply to a given handler. Extracted from
 /// <see cref="VerticallyBuilder"/> to keep behavior-placement concerns cohesive.
 /// </summary>
 internal sealed class BehaviorRegistry
 {
-    private readonly List<Type> _globalBehaviors = [];
+    private readonly List<BehaviorDescriptor> _globalBehaviors = [];
     private readonly Dictionary<Type, List<BehaviorPlacement>> _handlerBehaviors = [];
 
-    internal void AddGlobal(Type openGenericBehaviorType)
+    internal void AddGlobal(BehaviorDescriptor behavior)
     {
-        if (!_globalBehaviors.Contains(openGenericBehaviorType))
+        if (!_globalBehaviors.Exists(b => b.Identity == behavior.Identity))
         {
-            _globalBehaviors.Add(openGenericBehaviorType);
+            _globalBehaviors.Add(behavior);
         }
     }
 
@@ -30,40 +30,41 @@ internal sealed class BehaviorRegistry
     }
 
     /// <summary>
-    /// Returns the ordered open-generic behavior definitions that apply to a given handler,
-    /// outermost first. Starts from the global behaviors (registration order) and merges in
-    /// any per-handler behaviors, which sit innermost by default unless a placement override
+    /// Returns the ordered behavior entries that apply to a given handler, outermost first.
+    /// Starts from the global behaviors (registration order) and merges in any per-handler
+    /// behaviors, which sit innermost by default unless a placement override
     /// (<see cref="PlacementKind.Outermost"/> / <see cref="PlacementKind.Before"/>) is set.
     /// </summary>
-    internal IReadOnlyList<Type> GetDefinitionsFor(HandlerRegistration registration)
+    internal IReadOnlyList<BehaviorEntry> GetEntriesFor(HandlerRegistration registration)
     {
-        if (!_handlerBehaviors.TryGetValue(registration.RequestType, out var placements) || placements.Count == 0)
-            return _globalBehaviors;
+        var ordered = _globalBehaviors.ConvertAll(b => new BehaviorEntry(b, IsRequired: false));
+        if (!_handlerBehaviors.TryGetValue(registration.RequestType, out var placements))
+            return ordered;
 
-        var ordered = new List<Type>(_globalBehaviors);
         foreach (var placement in placements)
         {
+            var entry = new BehaviorEntry(placement.Behavior, IsRequired: true);
             switch (placement.Kind)
             {
                 case PlacementKind.Outermost:
-                    ordered.Insert(0, placement.BehaviorType);
+                    ordered.Insert(0, entry);
                     break;
 
                 case PlacementKind.Before:
-                    var anchorIndex = ordered.IndexOf(placement.Anchor!);
+                    var anchorIndex = ordered.FindIndex(e => e.Descriptor.Identity == placement.Anchor);
                     if (anchorIndex < 0)
                     {
                         throw new InvalidOperationException(
-                            $"Cannot place behavior '{placement.BehaviorType}' before " +
+                            $"Cannot place behavior '{placement.Behavior.Identity}' before " +
                             $"'{placement.Anchor}' for request '{registration.RequestType}' " +
                             "because the anchor behavior is not part of this handler's pipeline.");
                     }
 
-                    ordered.Insert(anchorIndex, placement.BehaviorType);
+                    ordered.Insert(anchorIndex, entry);
                     break;
 
                 default:
-                    ordered.Add(placement.BehaviorType);
+                    ordered.Add(entry);
                     break;
             }
         }
