@@ -5,6 +5,14 @@ All notable changes to D20Tek.Vertically are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6]
+
+### Changed
+
+- Updated our Functionally package references to bring through the latest AOT and trimming fixes
+  so that the `samples/AotCli` sample can be published as a fully trimmed Native AOT executable and
+  downstream users will get trimmable versions of both Functionally and Vertically.
+
 ## [0.9.5]
 
 ### Added
